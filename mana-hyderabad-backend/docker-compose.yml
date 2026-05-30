@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: mana-hyderabad-postgres
+    environment:
+      POSTGRES_DB: mana_hyderabad
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - mana_hyderabad_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mana_hyderabad"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mana_hyderabad_pgdata:

@@ -2,6 +2,48 @@
 
 Mana Hyderabad is a multilingual civic-tech platform that helps residents report civic issues quickly and helps municipal teams prioritise complaints intelligently.
 
+## Repository Layout
+
+This repository is organised as a small monorepo:
+
+```text
+.
+├── app/                         # Next.js frontend routes
+├── components/                  # Frontend UI components
+├── lib/                         # Frontend types, mock API boundary, utilities
+├── messages/                    # Frontend translations
+├── mana-hyderabad-backend/      # FastAPI backend, Alembic, PostGIS config
+├── package.json                 # Frontend dependencies and scripts
+└── README.md
+```
+
+Run the frontend from the repository root:
+
+```bash
+npm install
+npm run dev
+```
+
+Run the backend from `mana-hyderabad-backend/`:
+
+```bash
+cd mana-hyderabad-backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+docker compose up -d
+cp .env.example .env
+alembic upgrade head
+python -m app.seed
+uvicorn app.main:app --reload
+```
+
+Frontend: `http://localhost:3000`
+
+Backend Swagger: `http://127.0.0.1:8000/docs`
+
+---
+
 The platform accepts text, voice, photographs, and GPS location. It can understand complaints written in English, Telugu, Hindi, Urdu, or mixed-language formats such as Telugu-English and Hindi-English. It converts each complaint into a structured ticket, identifies likely duplicates, estimates urgency, and displays complaints on a map-based operations dashboard.
 
 > This repository contains a proof-of-concept implementation. It is not an official GHMC or Government of Telangana service.

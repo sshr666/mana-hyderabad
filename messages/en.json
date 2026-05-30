@@ -1,0 +1,113 @@
+{
+  "common": {
+    "appName": "Mana Hyderabad",
+    "tagline": "Report civic issues quickly",
+    "chooseLanguage": "Choose your language",
+    "continueEnglish": "Continue in English",
+    "continue": "Continue",
+    "back": "Back",
+    "edit": "Edit",
+    "submit": "Submit",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "changeLanguage": "Change Language",
+    "loading": "Loading...",
+    "empty": "No records found",
+    "error": "Something went wrong. Please try again."
+  },
+  "nav": {
+    "home": "Home",
+    "report": "Report",
+    "track": "Track",
+    "overview": "Overview",
+    "complaints": "Complaints",
+    "map": "Map View",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "home": {
+    "question": "What would you like to report?",
+    "reportNew": "Report a New Issue",
+    "trackExisting": "Track Existing Complaint",
+    "trustNote": "Your location is used only to identify the issue."
+  },
+  "issues": {
+    "garbage": "Garbage",
+    "blockedDrain": "Blocked Drain",
+    "waterlogging": "Waterlogging",
+    "pothole": "Pothole",
+    "streetLight": "Street Light",
+    "waterSupply": "Water Supply",
+    "trafficSignal": "Traffic Signal",
+    "other": "Other"
+  },
+  "report": {
+    "title": "Report an Issue",
+    "intro": "Tell us what happened.",
+    "hint": "You can type, speak, or upload a photo.",
+    "placeholder": "Example: Garbage has blocked the drain near my house.",
+    "mic": "Record voice",
+    "camera": "Take a photo",
+    "gallery": "Choose from gallery",
+    "analysing": "Understanding your complaint...",
+    "understood": "We understood the following:",
+    "issue": "Issue",
+    "location": "Location",
+    "notProvided": "Not provided",
+    "photo": "Photo",
+    "notAdded": "Not added",
+    "editDetails": "Edit Details",
+    "missingInfo": "We need one more detail.",
+    "useLocation": "Use My Current Location",
+    "chooseMap": "Choose on Map",
+    "manualLandmark": "Enter Landmark Manually",
+    "movePin": "Move the pin to the exact issue location",
+    "landmarkPlaceholder": "Near Kondapur RTO office",
+    "confirmLocation": "Confirm Location",
+    "skipPhoto": "Skip for Now",
+    "replacePhoto": "Replace Photo",
+    "removePhoto": "Remove Photo",
+    "photoAppears": "The photo appears to show:",
+    "fieldVerify": "This will be verified by the field team.",
+    "reviewTitle": "Review Your Complaint",
+    "issueType": "Issue Type",
+    "description": "Description",
+    "priority": "Priority",
+    "submitComplaint": "Submit Complaint",
+    "submittedTitle": "Complaint Submitted",
+    "referenceNumber": "Reference Number",
+    "submittedText": "Your complaint has been recorded. You can use the reference number to track updates.",
+    "trackComplaint": "Track Complaint",
+    "reportAnother": "Report Another Issue"
+  },
+  "track": {
+    "title": "Track Complaint",
+    "label": "Complaint reference ID",
+    "placeholder": "HYD-SAN-0142",
+    "button": "Track Complaint",
+    "status": "Status",
+    "reported": "Reported",
+    "updates": "Updates"
+  },
+  "detail": {
+    "priority": "Priority",
+    "location": "Location"
+  },
+  "status": {
+    "SUBMITTED": "Submitted",
+    "UNDER_REVIEW": "Under Review",
+    "ASSIGNED": "Assigned",
+    "IN_PROGRESS": "In Progress",
+    "RESOLVED": "Resolved"
+  },
+  "priority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "EMERGENCY": "Emergency"
+  },
+  "errors": {
+    "complaintRequired": "Please describe the issue.",
+    "referenceRequired": "Please enter a complaint reference."
+  }
+}

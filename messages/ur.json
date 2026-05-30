@@ -1,0 +1,113 @@
+{
+  "common": {
+    "appName": "Mana Hyderabad",
+    "tagline": "شہری مسائل جلدی رپورٹ کریں",
+    "chooseLanguage": "اپنی زبان منتخب کریں",
+    "continueEnglish": "English میں جاری رکھیں",
+    "continue": "جاری رکھیں",
+    "back": "واپس",
+    "edit": "ترمیم",
+    "submit": "جمع کریں",
+    "save": "تبدیلیاں محفوظ کریں",
+    "cancel": "منسوخ",
+    "changeLanguage": "زبان تبدیل کریں",
+    "loading": "لوڈ ہو رہا ہے...",
+    "empty": "کوئی ریکارڈ نہیں ملا",
+    "error": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔"
+  },
+  "nav": {
+    "home": "ہوم",
+    "report": "رپورٹ",
+    "track": "ٹریک",
+    "overview": "جائزہ",
+    "complaints": "شکایات",
+    "map": "نقشہ",
+    "analytics": "تجزیات",
+    "settings": "ترتیبات"
+  },
+  "home": {
+    "question": "آپ کیا رپورٹ کرنا چاہتے ہیں؟",
+    "reportNew": "نیا مسئلہ رپورٹ کریں",
+    "trackExisting": "شکایت ٹریک کریں",
+    "trustNote": "آپ کی لوکیشن صرف مسئلہ پہچاننے کے لیے استعمال ہوتی ہے۔"
+  },
+  "issues": {
+    "garbage": "کچرا",
+    "blockedDrain": "نالی بند",
+    "waterlogging": "پانی جمع",
+    "pothole": "گڑھا",
+    "streetLight": "اسٹریٹ لائٹ",
+    "waterSupply": "پانی کی سپلائی",
+    "trafficSignal": "ٹریفک سگنل",
+    "other": "دیگر"
+  },
+  "report": {
+    "title": "مسئلہ رپورٹ کریں",
+    "intro": "بتائیں کیا ہوا۔",
+    "hint": "آپ لکھ سکتے ہیں، بول سکتے ہیں، یا تصویر اپلوڈ کر سکتے ہیں۔",
+    "placeholder": "مثال: میرے گھر کے پاس کچرے سے نالی بند ہو گئی ہے۔",
+    "mic": "آواز ریکارڈ کریں",
+    "camera": "تصویر لیں",
+    "gallery": "گیلری سے منتخب کریں",
+    "analysing": "آپ کی شکایت سمجھی جا رہی ہے...",
+    "understood": "ہم نے یہ سمجھا:",
+    "issue": "مسئلہ",
+    "location": "لوکیشن",
+    "notProvided": "نہیں دی گئی",
+    "photo": "تصویر",
+    "notAdded": "شامل نہیں",
+    "editDetails": "تفصیل تبدیل کریں",
+    "missingInfo": "ہمیں ایک اور معلومات چاہیے۔",
+    "useLocation": "میری موجودہ لوکیشن استعمال کریں",
+    "chooseMap": "نقشے پر منتخب کریں",
+    "manualLandmark": "لینڈ مارک درج کریں",
+    "movePin": "پن کو درست مقام پر لے جائیں",
+    "landmarkPlaceholder": "Kondapur RTO office کے پاس",
+    "confirmLocation": "لوکیشن کنفرم کریں",
+    "skipPhoto": "ابھی چھوڑیں",
+    "replacePhoto": "تصویر بدلیں",
+    "removePhoto": "تصویر ہٹائیں",
+    "photoAppears": "تصویر میں یہ دکھائی دیتا ہے:",
+    "fieldVerify": "فیلڈ ٹیم اس کی تصدیق کرے گی۔",
+    "reviewTitle": "اپنی شکایت دیکھیں",
+    "issueType": "مسئلے کی قسم",
+    "description": "تفصیل",
+    "priority": "ترجیح",
+    "submitComplaint": "شکایت جمع کریں",
+    "submittedTitle": "شکایت جمع ہو گئی",
+    "referenceNumber": "ریفرنس نمبر",
+    "submittedText": "آپ کی شکایت ریکارڈ ہو گئی ہے۔ اپ ڈیٹس ٹریک کرنے کے لیے ریفرنس نمبر استعمال کریں۔",
+    "trackComplaint": "شکایت ٹریک کریں",
+    "reportAnother": "ایک اور مسئلہ رپورٹ کریں"
+  },
+  "track": {
+    "title": "شکایت ٹریک کریں",
+    "label": "شکایت ریفرنس ID",
+    "placeholder": "HYD-SAN-0142",
+    "button": "شکایت ٹریک کریں",
+    "status": "حالت",
+    "reported": "رپورٹ کیا گیا",
+    "updates": "اپ ڈیٹس"
+  },
+  "detail": {
+    "priority": "ترجیح",
+    "location": "لوکیشن"
+  },
+  "status": {
+    "SUBMITTED": "جمع ہوئی",
+    "UNDER_REVIEW": "زیر جائزہ",
+    "ASSIGNED": "تفویض ہوئی",
+    "IN_PROGRESS": "کام جاری",
+    "RESOLVED": "حل ہوئی"
+  },
+  "priority": {
+    "LOW": "کم",
+    "MEDIUM": "درمیانی",
+    "HIGH": "زیادہ",
+    "EMERGENCY": "ایمرجنسی"
+  },
+  "errors": {
+    "complaintRequired": "براہ کرم مسئلہ لکھیں۔",
+    "referenceRequired": "براہ کرم شکایت ریفرنس درج کریں۔"
+  }
+}

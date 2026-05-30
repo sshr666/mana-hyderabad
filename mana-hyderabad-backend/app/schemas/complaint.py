@@ -1,9 +1,16 @@
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.complaint import ComplaintCategory, ComplaintPriority, ComplaintStatus, SupportedLanguage
+from app.models.complaint import (
+    AnalysisSource,
+    ComplaintCategory,
+    ComplaintDepartment,
+    ComplaintPriority,
+    ComplaintStatus,
+    SupportedLanguage,
+)
 
 
 Latitude = Annotated[float, Field(ge=-90, le=90)]
@@ -32,63 +39,87 @@ class ComplaintAnalysisResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True, use_enum_values=True)
 
 
-class ComplaintCreate(BaseModel):
-    original_text: Annotated[str, Field(min_length=1)] = Field(alias="originalText")
-    normalized_english_text: Annotated[str, Field(min_length=1)] = Field(alias="normalizedEnglishText")
-    original_language: SupportedLanguage = Field(default=SupportedLanguage.en, alias="originalLanguage")
-    category: ComplaintCategory
-    subcategory: Annotated[str, Field(min_length=1)]
-    priority: ComplaintPriority = ComplaintPriority.MEDIUM
+class CoordinatePairMixin(BaseModel):
     latitude: Latitude | None = None
     longitude: Longitude | None = None
+
+    @model_validator(mode="after")
+    def validate_coordinate_pair(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("latitude and longitude must be supplied together")
+        return self
+
+
+class ComplaintCreate(CoordinatePairMixin):
+    original_text: Annotated[str, Field(min_length=1)] = Field(alias="originalText")
+    normalized_english_text: str | None = Field(default=None, alias="normalizedEnglishText")
+    original_language: SupportedLanguage | None = Field(default=None, alias="originalLanguage")
+    detected_language: str | None = Field(default=None, alias="detectedLanguage")
+    category: ComplaintCategory
+    subcategory: str | None = None
+    department: ComplaintDepartment | None = None
+    priority: ComplaintPriority = ComplaintPriority.MEDIUM
     landmark: str | None = None
+    locality: str | None = None
+    ward_name: str | None = Field(default=None, alias="wardName")
+    ward_number: int | None = Field(default=None, alias="wardNumber")
     photo_url: str | None = Field(default=None, alias="photoUrl")
+    analysis_source: AnalysisSource | None = Field(default=AnalysisSource.FALLBACK_RULES, alias="analysisSource")
+    requires_human_verification: bool = Field(default=True, alias="requiresHumanVerification")
+    reasoning_summary: str | None = Field(default=None, alias="reasoningSummary")
 
     model_config = ConfigDict(populate_by_name=True)
 
 
-class ComplaintCreateResponse(BaseModel):
-    reference_id: str = Field(alias="referenceId")
-    status: Literal["SUBMITTED"]
-    created_at: datetime = Field(alias="createdAt")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class ComplaintRead(BaseModel):
-    id: int
+class ComplaintResponse(BaseModel):
     reference_id: str = Field(alias="referenceId")
     original_text: str = Field(alias="originalText")
-    normalized_english_text: str = Field(alias="normalizedEnglishText")
-    original_language: SupportedLanguage = Field(alias="originalLanguage")
+    normalized_english_text: str | None = Field(alias="normalizedEnglishText")
+    original_language: SupportedLanguage | None = Field(alias="originalLanguage")
+    detected_language: str | None = Field(alias="detectedLanguage")
     category: ComplaintCategory
-    subcategory: str
+    subcategory: str | None
+    department: ComplaintDepartment | None
     priority: ComplaintPriority
     status: ComplaintStatus
     latitude: float | None
     longitude: float | None
     landmark: str | None
+    locality: str | None
+    ward_name: str | None = Field(alias="wardName")
+    ward_number: int | None = Field(alias="wardNumber")
     photo_url: str | None = Field(alias="photoUrl")
-    department: str
     assigned_team: str | None = Field(alias="assignedTeam")
+    internal_note: str | None = Field(alias="internalNote")
+    analysis_source: AnalysisSource | None = Field(alias="analysisSource")
+    requires_human_verification: bool = Field(alias="requiresHumanVerification")
+    reasoning_summary: str | None = Field(alias="reasoningSummary")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True, use_enum_values=True)
 
 
+# Backward-compatible alias for the frontend adapter and earlier route code.
+ComplaintRead = ComplaintResponse
+
+
 class ComplaintUpdate(BaseModel):
     status: ComplaintStatus | None = None
-    department: str | None = None
+    department: ComplaintDepartment | None = None
+    priority: ComplaintPriority | None = None
     assigned_team: str | None = Field(default=None, alias="assignedTeam")
     landmark: str | None = None
-    priority: ComplaintPriority | None = None
+    locality: str | None = None
+    ward_name: str | None = Field(default=None, alias="wardName")
+    ward_number: int | None = Field(default=None, alias="wardNumber")
+    internal_note: str | None = Field(default=None, alias="internalNote")
 
     model_config = ConfigDict(populate_by_name=True)
 
 
 class AdminComplaintList(BaseModel):
-    items: list[ComplaintRead]
+    items: list[ComplaintResponse]
     total: int
     page: int
     page_size: int = Field(alias="pageSize")
@@ -108,13 +139,15 @@ class DateCount(BaseModel):
     count: int
 
 
-class AnalyticsResponse(BaseModel):
-    open_complaints: int = Field(alias="openComplaints")
-    high_priority_issues: int = Field(alias="highPriorityIssues")
-    resolved_today: int = Field(alias="resolvedToday")
-    possible_duplicates: int = Field(alias="possibleDuplicates")
-    complaints_by_category: list[CategoryCount] = Field(alias="complaintsByCategory")
-    complaints_by_date: list[DateCount] = Field(alias="complaintsByDate")
+class LocalityCount(BaseModel):
+    locality: str
+    count: int
+
+
+class WardCount(BaseModel):
+    ward_number: int | None = Field(alias="wardNumber")
+    ward_name: str | None = Field(alias="wardName")
+    count: int
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -127,5 +160,36 @@ class AdminMapPoint(BaseModel):
     latitude: float
     longitude: float
     landmark: str | None
+    locality: str | None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True, use_enum_values=True)
+
+
+class NearbyComplaintResponse(AdminMapPoint):
+    distance_meters: float = Field(alias="distanceMeters")
+
+
+class HotspotResponse(BaseModel):
+    locality: str
+    category: ComplaintCategory
+    complaint_count: int = Field(alias="complaintCount")
+    center_latitude: float | None = Field(alias="centerLatitude")
+    center_longitude: float | None = Field(alias="centerLongitude")
+    radius_meters: int = Field(alias="radiusMeters")
+    latest_complaint_at: datetime = Field(alias="latestComplaintAt")
+
+    model_config = ConfigDict(populate_by_name=True, use_enum_values=True)
+
+
+class AnalyticsResponse(BaseModel):
+    open_complaints: int = Field(alias="openComplaints")
+    high_priority_issues: int = Field(alias="highPriorityIssues")
+    resolved_today: int = Field(alias="resolvedToday")
+    possible_duplicates: int = Field(default=0, alias="possibleDuplicates")
+    complaints_by_category: list[CategoryCount] = Field(alias="complaintsByCategory")
+    complaints_by_date: list[DateCount] = Field(alias="complaintsByDate")
+    complaints_by_locality: list[LocalityCount] = Field(alias="complaintsByLocality")
+    complaints_by_ward: list[WardCount] = Field(alias="complaintsByWard")
+    hotspots: list[HotspotResponse]
+
+    model_config = ConfigDict(populate_by_name=True)

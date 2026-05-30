@@ -6,6 +6,7 @@ export type ComplaintCategory =
   | "STREET_LIGHTS"
   | "WATER_SUPPLY"
   | "TRAFFIC"
+  | "PUBLIC_HEALTH"
   | "OTHER";
 
 export type ComplaintPriority = "LOW" | "MEDIUM" | "HIGH" | "EMERGENCY";

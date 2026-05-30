@@ -16,8 +16,8 @@ interface BackendComplaint {
   id: number;
   referenceId: string;
   originalText: string;
-  normalizedEnglishText: string;
-  originalLanguage: SupportedLanguage;
+  normalizedEnglishText: string | null;
+  originalLanguage: SupportedLanguage | null;
   category: ComplaintCategory;
   subcategory: string;
   priority: ComplaintPriority;
@@ -490,8 +490,8 @@ function mapBackendComplaint(complaint: BackendComplaint): Complaint {
     category: complaint.category,
     subcategory: complaint.subcategory,
     originalText: complaint.originalText,
-    normalizedEnglishText: complaint.normalizedEnglishText,
-    originalLanguage: complaint.originalLanguage,
+    normalizedEnglishText: complaint.normalizedEnglishText ?? complaint.originalText,
+    originalLanguage: complaint.originalLanguage ?? "en",
     landmark: complaint.landmark ?? "Location to be confirmed",
     latitude: complaint.latitude ?? 17.385,
     longitude: complaint.longitude ?? 78.4867,
@@ -522,6 +522,7 @@ function departmentForCategory(category: ComplaintCategory): string {
     STREET_LIGHTS: "Electrical",
     WATER_SUPPLY: "Water Supply",
     TRAFFIC: "Traffic",
+    PUBLIC_HEALTH: "Public Health",
     OTHER: "Citizen Services"
   }[category];
 }

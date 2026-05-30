@@ -19,6 +19,7 @@ const colors: Record<Complaint["category"], string> = {
   STREET_LIGHTS: "#ca8a04",
   WATER_SUPPLY: "#0284c7",
   TRAFFIC: "#dc2626",
+  PUBLIC_HEALTH: "#7c3aed",
   OTHER: "#64748b"
 };
 

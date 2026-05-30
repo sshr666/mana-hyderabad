@@ -2,7 +2,9 @@
 
 FastAPI backend foundation for the Mana Hyderabad civic complaint platform.
 
-This version provides complaint submission, reference ID generation, tracking, admin list filters, admin updates, analytics, map points, PostGIS storage, Alembic migrations, and seed data. It intentionally does not include LLMs, translation APIs, computer vision, authentication, or duplicate vector search yet.
+This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Alembic migrations, seed data, and pytest coverage.
+
+It intentionally does not include LLMs, translation APIs, speech processing, computer vision, authentication, cloud file storage, or pgvector semantic search yet.
 
 ## Setup
 
@@ -17,18 +19,6 @@ python -m app.seed
 uvicorn app.main:app --reload
 ```
 
-Swagger docs:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Health check:
-
-```bash
-curl http://127.0.0.1:8000/api/health
-```
-
 ## Environment Variables
 
 ```env
@@ -36,34 +26,68 @@ DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/mana_hyderaba
 FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
+Credentials are loaded through `app/config.py`; do not hardcode them in Python files.
+
+## Verify Health
+
+[http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+
+```bash
+curl http://127.0.0.1:8000/api/health
+```
+
+## Swagger Docs
+
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+## Database Verification
+
+```bash
+psql -h localhost -U postgres -d mana_hyderabad
+```
+
+```sql
+SELECT PostGIS_Version();
+```
+
+## Migration Commands
+
+```bash
+alembic upgrade head
+alembic downgrade -1
+```
+
+Initial migration:
+
+```text
+20260530_0001_create_complaints
+```
+
+The migration enables:
+
+- `postgis`
+- `pgcrypto`
+- `complaints` table
+- unique reference ID index
+- category, priority, status, locality, created-at indexes
+- GIST spatial index on `location`
+
 ## API Endpoints
 
 ```text
+GET    /api/health
 POST   /api/complaints/analyse
 POST   /api/complaints
 GET    /api/complaints/{reference_id}
 GET    /api/admin/complaints
 PATCH  /api/admin/complaints/{reference_id}
-GET    /api/admin/analytics
 GET    /api/admin/map-points
-GET    /api/health
+GET    /api/admin/nearby-complaints
+GET    /api/admin/hotspots
+GET    /api/admin/analytics
 ```
 
 ## Quick API Test
-
-Analyse:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/complaints/analyse \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Road pe bahut waterlogging hai near Gachibowli signal",
-    "language": "hi",
-    "photoUrl": null,
-    "latitude": null,
-    "longitude": null
-  }'
-```
 
 Submit:
 
@@ -71,51 +95,99 @@ Submit:
 curl -X POST http://127.0.0.1:8000/api/complaints \
   -H "Content-Type: application/json" \
   -d '{
-    "originalText": "Road pe bahut waterlogging hai near Gachibowli signal",
-    "normalizedEnglishText": "There is waterlogging near Gachibowli signal.",
-    "originalLanguage": "hi",
-    "category": "WATERLOGGING",
-    "subcategory": "ROAD_WATERLOGGING",
-    "priority": "MEDIUM",
-    "latitude": 17.4401,
-    "longitude": 78.3489,
-    "landmark": "Gachibowli signal",
-    "photoUrl": null
+    "originalText": "Garbage is blocking the drain near Madhapur Metro.",
+    "normalizedEnglishText": "Garbage is blocking the drain near Madhapur Metro.",
+    "originalLanguage": "en",
+    "detectedLanguage": "en",
+    "category": "SANITATION",
+    "subcategory": "GARBAGE_BLOCKING_DRAIN",
+    "department": "MULTI_DEPARTMENT",
+    "priority": "HIGH",
+    "latitude": 17.4483,
+    "longitude": 78.3915,
+    "landmark": "Near Madhapur Metro",
+    "locality": "Madhapur",
+    "requiresHumanVerification": true,
+    "analysisSource": "MANUAL"
   }'
 ```
 
-Track:
+Nearby search:
 
 ```bash
-curl http://127.0.0.1:8000/api/complaints/HYD-SAN-0142
+curl "http://127.0.0.1:8000/api/admin/nearby-complaints?latitude=17.4483&longitude=78.3915&radius_meters=200&category=SANITATION"
 ```
 
-Admin:
+Hotspots:
 
 ```bash
-curl http://127.0.0.1:8000/api/admin/complaints
-curl http://127.0.0.1:8000/api/admin/analytics
-curl http://127.0.0.1:8000/api/admin/map-points
+curl "http://127.0.0.1:8000/api/admin/hotspots?radius_meters=300&min_complaints=3"
 ```
 
-Update:
+## Seed Data
 
 ```bash
-curl -X PATCH http://127.0.0.1:8000/api/admin/complaints/HYD-SAN-0142 \
-  -H "Content-Type: application/json" \
-  -d '{"status": "ASSIGNED", "assignedTeam": "Ward 107 Sanitation Crew"}'
+python -m app.seed
 ```
 
-## Notes for Frontend Integration
+The seed inserts 20+ realistic Hyderabad complaints across Madhapur, Gachibowli, Hitech City, Charminar, Kukatpally, Ameerpet, Jubilee Hills, Begumpet, Secunderabad, Kondapur, Banjara Hills, Mehdipatnam, Tolichowki, Miyapur, and Tarnaka.
 
-The backend uses camelCase JSON aliases where the current frontend mock API already expects them, for example `referenceId`, `originalText`, `normalizedEnglishText`, `photoUrl`, `createdAt`, and `updatedAt`.
+The data includes sanitation clusters, drainage/waterlogging clusters, pothole clusters, isolated complaints, multiple languages, ward fields, and valid coordinates.
 
-The frontend should replace mock calls in `lib/api-client.ts` with HTTP calls to this backend base URL.
+## Safe Development Reset
+
+Development only:
+
+```bash
+python -m app.seed --reset
+```
+
+For a full database reset:
+
+```bash
+alembic downgrade -1
+alembic upgrade head
+python -m app.seed
+```
+
+## Test
+
+```bash
+pytest
+```
+
+Database-backed tests require PostgreSQL/PostGIS to be running and migrations applied. If the database is unavailable, those tests are skipped with a setup hint.
+
+## Run Verification Script
+
+Start the API first:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Then run:
+
+```bash
+python scripts/verify_database_flow.py
+```
+
+The script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
+
+## Frontend Integration
+
+From the frontend root, set:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+```
+
+The backend uses camelCase JSON aliases expected by the frontend, including `referenceId`, `originalText`, `normalizedEnglishText`, `photoUrl`, `wardNumber`, `createdAt`, and `updatedAt`.
 
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
 - No file upload endpoint yet; `photoUrl` is stored as a string.
 - No LLM, translation, ASR/TTS, computer vision, or vector duplicate detection yet.
-- `possibleDuplicates` returns `0` by design for this backend foundation.
-- Reference IDs are generated per category by current row counts; production should use a sequence table or transaction-safe counter under heavier concurrency.
+- Hotspot detection is intentionally simple: locality-category grouping with configurable thresholds.
+- Ward analysis stores supplied ward fields only. GeoJSON point-in-polygon ward mapping is a future integration point.

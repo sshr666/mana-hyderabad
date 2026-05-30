@@ -5,9 +5,11 @@ from app.schemas.complaint import (
     ComplaintAnalysisRequest,
     ComplaintAnalysisResponse,
     ComplaintCreate,
-    ComplaintCreateResponse,
     ComplaintRead,
+    ComplaintResponse,
     ComplaintUpdate,
+    HotspotResponse,
+    NearbyComplaintResponse,
 )
 
 __all__ = [
@@ -17,7 +19,9 @@ __all__ = [
     "ComplaintAnalysisRequest",
     "ComplaintAnalysisResponse",
     "ComplaintCreate",
-    "ComplaintCreateResponse",
     "ComplaintRead",
+    "ComplaintResponse",
     "ComplaintUpdate",
+    "HotspotResponse",
+    "NearbyComplaintResponse",
 ]

@@ -7,3 +7,6 @@ alembic==1.14.0
 psycopg[binary]==3.2.3
 GeoAlchemy2==0.16.0
 python-dotenv==1.0.1
+pytest==8.3.4
+requests==2.32.3
+httpx==0.28.1

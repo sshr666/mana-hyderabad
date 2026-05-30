@@ -6,8 +6,7 @@ from app.schemas.complaint import (
     ComplaintAnalysisRequest,
     ComplaintAnalysisResponse,
     ComplaintCreate,
-    ComplaintCreateResponse,
-    ComplaintRead,
+    ComplaintResponse,
 )
 from app.services.analysis_service import analyse_complaint
 from app.services.complaint_service import create_complaint, get_complaint_by_reference
@@ -20,16 +19,11 @@ def analyse(payload: ComplaintAnalysisRequest) -> ComplaintAnalysisResponse:
     return analyse_complaint(payload)
 
 
-@router.post("", response_model=ComplaintCreateResponse, status_code=status.HTTP_201_CREATED)
-def submit_complaint(payload: ComplaintCreate, db: Session = Depends(get_db)) -> ComplaintCreateResponse:
-    complaint = create_complaint(db, payload)
-    return ComplaintCreateResponse(
-        referenceId=complaint.reference_id,
-        status="SUBMITTED",
-        createdAt=complaint.created_at,
-    )
+@router.post("", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)
+def submit_complaint(payload: ComplaintCreate, db: Session = Depends(get_db)) -> ComplaintResponse:
+    return create_complaint(db, payload)
 
 
-@router.get("/{reference_id}", response_model=ComplaintRead)
-def track_complaint(reference_id: str, db: Session = Depends(get_db)) -> ComplaintRead:
+@router.get("/{reference_id}", response_model=ComplaintResponse)
+def track_complaint(reference_id: str, db: Session = Depends(get_db)) -> ComplaintResponse:
     return get_complaint_by_reference(db, reference_id)

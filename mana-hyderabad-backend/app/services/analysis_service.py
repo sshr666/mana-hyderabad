@@ -13,6 +13,11 @@ LOCALITIES = [
     "Begumpet",
     "Secunderabad",
     "Hitech City",
+    "Banjara Hills",
+    "Mehdipatnam",
+    "Tolichowki",
+    "Miyapur",
+    "Tarnaka",
 ]
 
 
@@ -57,6 +62,8 @@ def _classify(text: str) -> tuple[ComplaintCategory, str, ComplaintPriority, str
         return ComplaintCategory.WATER_SUPPLY, "WATER_SUPPLY_ISSUE", ComplaintPriority.MEDIUM, "water-supply issue"
     if _has(text, ["traffic light", "traffic signal", "signal", "ట్రాఫిక్", "ट्रैफिक"]):
         return ComplaintCategory.TRAFFIC, "SIGNAL_NOT_WORKING", ComplaintPriority.HIGH, "traffic signal problem"
+    if _has(text, ["mosquito", "public health", "fever", "stray dog", "street dog"]):
+        return ComplaintCategory.PUBLIC_HEALTH, "PUBLIC_HEALTH_CONCERN", ComplaintPriority.MEDIUM, "public health concern"
     return ComplaintCategory.OTHER, "MISCELLANEOUS", ComplaintPriority.LOW, "civic issue"
 
 

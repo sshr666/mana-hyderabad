@@ -39,7 +39,7 @@ export function ComplaintFilters({value, onChange, localities}: ComplaintFilters
         <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All categories</SelectItem>
-          {["SANITATION", "DRAINAGE", "WATERLOGGING", "ROADS", "STREET_LIGHTS", "WATER_SUPPLY", "TRAFFIC", "OTHER"].map((item) => (
+          {["SANITATION", "DRAINAGE", "WATERLOGGING", "ROADS", "STREET_LIGHTS", "WATER_SUPPLY", "TRAFFIC", "PUBLIC_HEALTH", "OTHER"].map((item) => (
             <SelectItem key={item} value={item}>{item.replaceAll("_", " ")}</SelectItem>
           ))}
         </SelectContent>

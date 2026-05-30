@@ -43,9 +43,9 @@ def analyse_complaint(request: ComplaintAnalysisRequest) -> ComplaintAnalysisRes
 
 
 def _classify(text: str) -> tuple[ComplaintCategory, str, ComplaintPriority, str]:
-    if _has(text, ["garbage", "trash", "waste", "dump", "చెత్త", "కచరా", "kooda", "kachra"]):
+    if _has(text, ["garbage", "trash", "waste", "dump", "చెత్త", "కచరా", "kooda", "kachra", "کچرا", "كچرا"]):
         return ComplaintCategory.SANITATION, "GARBAGE_ACCUMULATION", ComplaintPriority.MEDIUM, "garbage accumulation"
-    if _has(text, ["drain", "nala", "blocked drain", "నాలా", "నాలి", "नाला", "نالہ"]):
+    if _has(text, ["drain", "nala", "blocked drain", "నాలా", "నాలి", "नाला", "نالہ", "نالی"]):
         return ComplaintCategory.DRAINAGE, "BLOCKED_DRAIN", ComplaintPriority.MEDIUM, "blocked drain"
     if _has(text, ["waterlogging", "flood", "stagnant water", "standing water", "जलभराव"]):
         return ComplaintCategory.WATERLOGGING, "ROAD_WATERLOGGING", ComplaintPriority.MEDIUM, "waterlogging"
@@ -71,6 +71,8 @@ def _extract_location(text: str) -> str | None:
             if locality == "Gachibowli" and "signal" in lower:
                 return "Gachibowli signal"
             return locality
+    if "چارمینار" in text:
+        return "Charminar"
     if "near " in lower:
         return text[text.lower().index("near ") + 5 :].strip(" .")
     return None

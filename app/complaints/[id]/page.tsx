@@ -7,6 +7,8 @@ import {Badge} from "@/components/ui/badge";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {formatDateTime, priorityTone, statusTone} from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function ComplaintStatusPage({params}: {params: Promise<{id: string}>}) {
   const {id} = await params;
   const [complaint, t] = await Promise.all([getComplaint(id), getTranslations()]);

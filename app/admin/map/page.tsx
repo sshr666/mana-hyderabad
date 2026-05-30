@@ -1,6 +1,8 @@
 import {getMapPoints} from "@/lib/api-client";
 import {OperationsMap} from "@/components/admin/operations-map";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminMapPage() {
   const complaints = await getMapPoints();
 

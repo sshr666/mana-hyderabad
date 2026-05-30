@@ -4,6 +4,8 @@ import {MetricCard} from "@/components/admin/metric-card";
 import {ComplaintTable} from "@/components/admin/complaint-table";
 import {DashboardCharts} from "@/components/admin/dashboard-charts";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminOverviewPage() {
   const [analytics, complaints] = await Promise.all([getAnalytics(), getAdminComplaints()]);
 

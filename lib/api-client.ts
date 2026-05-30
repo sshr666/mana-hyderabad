@@ -2,6 +2,7 @@ import {analyticsSummary, complaints} from "@/lib/mock-data";
 import type {
   AnalyticsSummary,
   Complaint,
+  ComplaintCategory,
   ComplaintAnalysis,
   ComplaintPriority,
   ComplaintStatus,
@@ -9,6 +10,59 @@ import type {
 } from "@/lib/types";
 
 const wait = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+
+interface BackendComplaint {
+  id: number;
+  referenceId: string;
+  originalText: string;
+  normalizedEnglishText: string;
+  originalLanguage: SupportedLanguage;
+  category: ComplaintCategory;
+  subcategory: string;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  latitude: number | null;
+  longitude: number | null;
+  landmark: string | null;
+  photoUrl: string | null;
+  department: string;
+  assignedTeam: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BackendCreateResponse {
+  referenceId: string;
+  status: "SUBMITTED";
+  createdAt: string;
+}
+
+interface BackendAdminList {
+  items: BackendComplaint[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+interface BackendAnalytics {
+  openComplaints: number;
+  highPriorityIssues: number;
+  resolvedToday: number;
+  possibleDuplicates: number;
+  complaintsByCategory: Array<{category: string; count: number}>;
+  complaintsByDate: Array<{date: string; count: number}>;
+}
+
+interface BackendMapPoint {
+  referenceId: string;
+  category: ComplaintCategory;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  latitude: number;
+  longitude: number;
+  landmark: string | null;
+}
 
 export interface AnalyseComplaintRequest {
   text: string;
@@ -42,6 +96,18 @@ export interface UpdateComplaintRequest {
 }
 
 export async function analyseComplaint(request: AnalyseComplaintRequest): Promise<ComplaintAnalysis> {
+  if (API_BASE_URL) {
+    const response = await requestJson<ComplaintAnalysis>("/api/complaints/analyse", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+    return {
+      ...response,
+      issueTitle: titleFromAnalysis(response),
+      detectedLabels: request.photoUrl ? ["possible issue requires field verification"] : []
+    };
+  }
+
   await wait(850);
   const text = request.text.toLowerCase();
   const hasAny = (terms: string[]) => terms.some((term) => text.includes(term));
@@ -253,6 +319,33 @@ function extractKnownLocation(text: string): string | null {
 }
 
 export async function submitComplaint(request: SubmitComplaintRequest): Promise<Complaint> {
+  if (API_BASE_URL) {
+    const created = await requestJson<BackendCreateResponse>("/api/complaints", {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+    const complaint = await getComplaint(created.referenceId);
+    if (complaint) return complaint;
+    return {
+      id: created.referenceId,
+      category: request.category,
+      subcategory: request.subcategory,
+      originalText: request.originalText,
+      normalizedEnglishText: request.normalizedEnglishText,
+      originalLanguage: request.originalLanguage,
+      landmark: request.landmark,
+      latitude: request.latitude,
+      longitude: request.longitude,
+      photoUrl: request.photoUrl,
+      detectedLabels: request.detectedLabels,
+      priority: request.priority,
+      status: created.status,
+      department: departmentForCategory(request.category),
+      createdAt: created.createdAt,
+      updatedAt: created.createdAt
+    };
+  }
+
   await wait(700);
   // TODO: POST /api/complaints will be connected to FastAPI here.
   return {
@@ -277,17 +370,43 @@ export async function submitComplaint(request: SubmitComplaintRequest): Promise<
 }
 
 export async function getComplaint(id: string): Promise<Complaint | null> {
+  if (API_BASE_URL) {
+    const response = await fetch(`${API_BASE_URL}/api/complaints/${encodeURIComponent(id)}`, {
+      cache: "no-store"
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`);
+    return mapBackendComplaint((await response.json()) as BackendComplaint);
+  }
+
   await wait(300);
   return complaints.find((complaint) => complaint.id.toLowerCase() === id.toLowerCase()) ?? null;
 }
 
 export async function getAdminComplaints(): Promise<Complaint[]> {
+  if (API_BASE_URL) {
+    const response = await requestJson<BackendAdminList>("/api/admin/complaints?page_size=100");
+    return response.items.map(mapBackendComplaint);
+  }
+
   await wait(350);
   // TODO: GET /api/admin/complaints will be connected to FastAPI here.
   return complaints;
 }
 
 export async function updateComplaint(id: string, request: UpdateComplaintRequest): Promise<Complaint | null> {
+  if (API_BASE_URL) {
+    const response = await fetch(`${API_BASE_URL}/api/admin/complaints/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(request),
+      cache: "no-store"
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`);
+    return mapBackendComplaint((await response.json()) as BackendComplaint);
+  }
+
   await wait(500);
   // TODO: PATCH /api/admin/complaints/{id} will be connected to FastAPI here.
   const complaint = complaints.find((item) => item.id === id);
@@ -296,11 +415,113 @@ export async function updateComplaint(id: string, request: UpdateComplaintReques
 }
 
 export async function getAnalytics(): Promise<AnalyticsSummary> {
+  if (API_BASE_URL) {
+    const response = await requestJson<BackendAnalytics>("/api/admin/analytics");
+    return {
+      openComplaints: response.openComplaints,
+      highPriorityIssues: response.highPriorityIssues,
+      resolvedToday: response.resolvedToday,
+      possibleDuplicates: response.possibleDuplicates,
+      trend: response.complaintsByDate.map((item) => ({
+        day: item.date,
+        complaints: item.count,
+        resolved: 0
+      })),
+      categories: response.complaintsByCategory.map((item) => ({
+        category: item.category.replaceAll("_", " "),
+        count: item.count
+      }))
+    };
+  }
+
   await wait(300);
   return analyticsSummary;
 }
 
 export async function getMapPoints(): Promise<Complaint[]> {
+  if (API_BASE_URL) {
+    const response = await requestJson<BackendMapPoint[]>("/api/admin/map-points");
+    return response.map((point) => ({
+      id: point.referenceId,
+      category: point.category,
+      subcategory: point.category,
+      originalText: "",
+      normalizedEnglishText: "",
+      originalLanguage: "en",
+      landmark: point.landmark ?? "Location shared by citizen",
+      latitude: point.latitude,
+      longitude: point.longitude,
+      priority: point.priority,
+      status: point.status,
+      department: departmentForCategory(point.category),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
   await wait(300);
   return complaints;
+}
+
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is not configured.");
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Backend request failed: ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+function mapBackendComplaint(complaint: BackendComplaint): Complaint {
+  return {
+    id: complaint.referenceId,
+    category: complaint.category,
+    subcategory: complaint.subcategory,
+    originalText: complaint.originalText,
+    normalizedEnglishText: complaint.normalizedEnglishText,
+    originalLanguage: complaint.originalLanguage,
+    landmark: complaint.landmark ?? "Location to be confirmed",
+    latitude: complaint.latitude ?? 17.385,
+    longitude: complaint.longitude ?? 78.4867,
+    photoUrl: complaint.photoUrl ?? undefined,
+    detectedLabels: [],
+    priority: complaint.priority,
+    status: complaint.status,
+    department: complaint.department,
+    assignedTeam: complaint.assignedTeam ?? undefined,
+    createdAt: complaint.createdAt,
+    updatedAt: complaint.updatedAt
+  };
+}
+
+function titleFromAnalysis(analysis: Pick<ComplaintAnalysis, "subcategory" | "category">): string {
+  return analysis.subcategory
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()) || analysis.category;
+}
+
+function departmentForCategory(category: ComplaintCategory): string {
+  return {
+    SANITATION: "Sanitation",
+    DRAINAGE: "Drainage",
+    WATERLOGGING: "Drainage",
+    ROADS: "Roads",
+    STREET_LIGHTS: "Electrical",
+    WATER_SUPPLY: "Water Supply",
+    TRAFFIC: "Traffic",
+    OTHER: "Citizen Services"
+  }[category];
 }

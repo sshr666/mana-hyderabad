@@ -21,7 +21,14 @@ Run the frontend from the repository root:
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
+```
+
+To use mock frontend data, leave `NEXT_PUBLIC_API_BASE_URL` unset. To connect the frontend to the FastAPI backend, set:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 Run the backend from `mana-hyderabad-backend/`:

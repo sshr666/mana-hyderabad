@@ -2,6 +2,8 @@ import {getAnalytics} from "@/lib/api-client";
 import {DashboardCharts} from "@/components/admin/dashboard-charts";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export default async function AnalyticsPage() {
   const analytics = await getAnalytics();
 

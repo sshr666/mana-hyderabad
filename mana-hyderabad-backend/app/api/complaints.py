@@ -15,8 +15,8 @@ router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
 
 @router.post("/analyse", response_model=ComplaintAnalysisResponse)
-def analyse(payload: ComplaintAnalysisRequest) -> ComplaintAnalysisResponse:
-    return analyse_complaint(payload)
+async def analyse(payload: ComplaintAnalysisRequest) -> ComplaintAnalysisResponse:
+    return await analyse_complaint(payload)
 
 
 @router.post("", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)

@@ -144,6 +144,11 @@ export default function ReportPage() {
                     value={photoUrl ? "Added" : t("report.notAdded")}
                   />
                 </div>
+                {analysis.citizenReply && (
+                  <div className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">
+                    {analysis.citizenReply}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep("input")}>
                     {t("report.editDetails")}

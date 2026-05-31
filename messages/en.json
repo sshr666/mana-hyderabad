@@ -80,6 +80,12 @@
     "trackComplaint": "Track Complaint",
     "reportAnother": "Report Another Issue"
   },
+  "translation": {
+    "unavailable": "Translation unavailable",
+    "originalMessage": "Original message",
+    "englishTranslation": "English translation",
+    "humanVerification": "Machine translation requires human verification."
+  },
   "track": {
     "title": "Track Complaint",
     "label": "Complaint reference ID",

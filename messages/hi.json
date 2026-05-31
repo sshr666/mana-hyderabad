@@ -80,6 +80,12 @@
     "trackComplaint": "शिकायत ट्रैक करें",
     "reportAnother": "एक और समस्या रिपोर्ट करें"
   },
+  "translation": {
+    "unavailable": "अनुवाद उपलब्ध नहीं है",
+    "originalMessage": "मूल संदेश",
+    "englishTranslation": "English अनुवाद",
+    "humanVerification": "मशीन अनुवाद के लिए मानवीय सत्यापन आवश्यक है।"
+  },
   "track": {
     "title": "शिकायत ट्रैक करें",
     "label": "शिकायत रेफरेंस ID",

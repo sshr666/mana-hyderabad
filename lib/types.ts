@@ -57,6 +57,7 @@ export interface Complaint {
   analysisSource?: AnalysisSource | null;
   requiresHumanVerification?: boolean;
   reasoningSummary?: string | null;
+  translationProvider?: string | null;
   createdAt: string;
   updatedAt: string;
   possibleDuplicateIds?: string[];
@@ -86,6 +87,7 @@ export interface ComplaintAnalysisResponse {
   reasoningSummary?: string | null;
   requiresHumanVerification?: boolean;
   analysisSource?: AnalysisSource | null;
+  translationProvider?: string | null;
   issueTitle: string;
   detectedLabels?: string[];
 }
@@ -190,6 +192,33 @@ export interface UploadedImageResponse {
   height?: number | null;
   format?: string | null;
   bytes?: number | null;
+}
+
+export interface TranslationRequest {
+  text: string;
+  sourceLanguage?: string | null;
+  targetLanguage: SupportedLanguage;
+  preserveTerms?: string[] | null;
+}
+
+export interface TranslationResponse {
+  originalText: string;
+  translatedText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  detectedLanguage?: string | null;
+  isMixedLanguage: boolean;
+  provider: string;
+  preservedTerms: string[];
+  requiresHumanVerification: boolean;
+}
+
+export interface LanguageDetectionResponse {
+  detectedLanguage: string;
+  confidence?: number | null;
+  isMixedLanguage: boolean;
+  detectedScripts: string[];
+  analysisSource: string;
 }
 
 export interface AdminAnalyticsResponse {

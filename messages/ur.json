@@ -80,6 +80,12 @@
     "trackComplaint": "شکایت ٹریک کریں",
     "reportAnother": "ایک اور مسئلہ رپورٹ کریں"
   },
+  "translation": {
+    "unavailable": "ترجمہ دستیاب نہیں",
+    "originalMessage": "اصل پیغام",
+    "englishTranslation": "English ترجمہ",
+    "humanVerification": "مشینی ترجمے کے لیے انسانی تصدیق ضروری ہے۔"
+  },
   "track": {
     "title": "شکایت ٹریک کریں",
     "label": "شکایت ریفرنس ID",

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/types";
 import { getNearbyComplaints, updateComplaint } from "@/lib/api-client";
 import { OperationsMap } from "@/components/admin/operations-map";
+import { TranslationStatus } from "@/components/admin/translation-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -120,9 +121,21 @@ export function ComplaintDetailPanel({
           </CardHeader>
           <CardContent className="space-y-5">
             <Field label="Original Message" value={complaint.originalText} />
-            <Field label="Translated Message" value={complaint.normalizedEnglishText} />
+            <Field
+              label="English Translation"
+              value={
+                complaint.normalizedEnglishText ||
+                "Translation unavailable. Showing original citizen message."
+              }
+            />
             <Field label="Original Language" value={complaint.originalLanguage} />
             <Field label="Detected Language" value={complaint.detectedLanguage ?? "Not detected"} />
+            <TranslationStatus
+              provider={complaint.translationProvider}
+              originalLanguage={complaint.originalLanguage}
+              detectedLanguage={complaint.detectedLanguage}
+              requiresHumanVerification={complaint.requiresHumanVerification}
+            />
             <Field label="Landmark" value={complaint.landmark || "No landmark provided"} />
             <Field label="Locality" value={complaint.locality ?? "No locality assigned"} />
             <Field

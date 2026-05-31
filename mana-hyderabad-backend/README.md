@@ -241,11 +241,63 @@ Then run:
 python scripts/verify_database_flow.py
 python scripts/verify_geospatial_flow.py
 python scripts/verify_upload_flow.py
+python scripts/verify_translation_flow.py
 ```
 
 The database script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
 
 The upload script posts `test-assets/sample-garbage.jpg` to `/api/uploads/images`, submits a complaint with the returned `photoUrl`, retrieves the complaint, and verifies the stored `photoUrl`.
+
+## Translation Architecture
+
+Dynamic citizen text uses a backend-only translation layer:
+
+```text
+Citizen text
+→ language detection
+→ locality preservation
+→ BHASHINI translation when configured
+→ English normalization
+→ complaint analysis
+→ translated citizen reply
+```
+
+Supported languages for Phase 7:
+
+- English (`en`)
+- Telugu (`te`)
+- Hindi (`hi`)
+- Urdu (`ur`)
+- Mixed-language input such as Telugu-English and Hindi-English
+- Romanised input with best-effort heuristics
+
+Static frontend labels remain in `messages/*.json`. BHASHINI is used only for dynamic citizen-generated or backend-generated text.
+
+## BHASHINI Setup
+
+Add the provider configuration to `.env`:
+
+```env
+TRANSLATION_PROVIDER=bhashini
+ENABLE_TRANSLATION=true
+TRANSLATION_TIMEOUT_SECONDS=20
+TRANSLATION_MAX_RETRIES=2
+BHASHINI_USER_ID=
+BHASHINI_API_KEY=
+BHASHINI_PIPELINE_ID=
+BHASHINI_CONFIG_URL=
+BHASHINI_CACHE_TTL_SECONDS=3600
+ENABLE_INDIC_TRANS2_FALLBACK=false
+INDIC_TRANS2_BASE_URL=
+INDIC_TRANS2_TIMEOUT_SECONDS=30
+```
+
+Do not expose BHASHINI credentials to the frontend. If BHASHINI is unavailable or not configured, complaint submission still works: the original text is preserved, best-effort English normalization is attempted, and the response is marked as fallback/human-verification required.
+
+Translation endpoints:
+
+- `POST /api/translation/detect-language`
+- `POST /api/translation/translate`
 
 ## Upload Validation
 
@@ -293,7 +345,8 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No LLM, translation, ASR/TTS, computer vision, or vector duplicate detection yet.
+- No LLM, ASR/TTS, computer vision, or vector duplicate detection yet.
+- Machine translation requires human verification. Romanised and mixed-language input is best effort until provider-backed translation is configured.
 - One primary image per complaint for the MVP. Multiple images can be added later with a separate image table.
 - Hotspot detection is intentionally simple: locality-category grouping with configurable thresholds.
 - Ward analysis stores supplied ward fields only. GeoJSON point-in-polygon ward mapping is a future integration point.

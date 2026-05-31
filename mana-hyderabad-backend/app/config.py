@@ -20,6 +20,18 @@ class Settings(BaseSettings):
     cloudinary_upload_folder: str = Field(default="mana-hyderabad/complaints", alias="CLOUDINARY_UPLOAD_FOLDER")
     max_upload_size_mb: int = Field(default=8, alias="MAX_UPLOAD_SIZE_MB")
     allowed_image_types: str = Field(default="image/jpeg,image/png,image/webp", alias="ALLOWED_IMAGE_TYPES")
+    translation_provider: str = Field(default="bhashini", alias="TRANSLATION_PROVIDER")
+    enable_translation: bool = Field(default=True, alias="ENABLE_TRANSLATION")
+    translation_timeout_seconds: int = Field(default=20, alias="TRANSLATION_TIMEOUT_SECONDS")
+    translation_max_retries: int = Field(default=2, alias="TRANSLATION_MAX_RETRIES")
+    bhashini_user_id: str = Field(default="", alias="BHASHINI_USER_ID")
+    bhashini_api_key: str = Field(default="", alias="BHASHINI_API_KEY")
+    bhashini_pipeline_id: str = Field(default="", alias="BHASHINI_PIPELINE_ID")
+    bhashini_config_url: str = Field(default="", alias="BHASHINI_CONFIG_URL")
+    bhashini_cache_ttl_seconds: int = Field(default=3600, alias="BHASHINI_CACHE_TTL_SECONDS")
+    enable_indic_trans2_fallback: bool = Field(default=False, alias="ENABLE_INDIC_TRANS2_FALLBACK")
+    indic_trans2_base_url: str = Field(default="", alias="INDIC_TRANS2_BASE_URL")
+    indic_trans2_timeout_seconds: int = Field(default=30, alias="INDIC_TRANS2_TIMEOUT_SECONDS")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

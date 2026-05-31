@@ -20,7 +20,10 @@ import type {
   UploadedImageResponse,
   SupportedLanguage,
   ComplaintAnalysisRequest,
-  ComplaintUpdatePayload
+  ComplaintUpdatePayload,
+  LanguageDetectionResponse,
+  TranslationRequest,
+  TranslationResponse
 } from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
@@ -61,6 +64,7 @@ interface BackendComplaint {
   assignedTeam: string | null;
   internalNote?: string | null;
   analysisSource?: AnalysisSource | null;
+  translationProvider?: string | null;
   requiresHumanVerification?: boolean;
   reasoningSummary?: string | null;
   createdAt: string;
@@ -87,6 +91,28 @@ export function getApiMode(): ApiMode {
 
 export async function healthCheck(signal?: AbortSignal): Promise<{ status: string }> {
   return requestJson<{ status: string }>("/api/health", { signal });
+}
+
+export async function detectLanguage(
+  text: string,
+  signal?: AbortSignal
+): Promise<LanguageDetectionResponse> {
+  return requestJson<LanguageDetectionResponse>("/api/translation/detect-language", {
+    method: "POST",
+    body: { text },
+    signal
+  });
+}
+
+export async function translateText(
+  payload: TranslationRequest,
+  signal?: AbortSignal
+): Promise<TranslationResponse> {
+  return requestJson<TranslationResponse>("/api/translation/translate", {
+    method: "POST",
+    body: payload,
+    signal
+  });
 }
 
 export async function analyseComplaint(
@@ -116,6 +142,7 @@ export async function analyseComplaint(
           `${titleFromParts(response.subcategory, response.category)} reported.`,
         requiresHumanVerification: response.requiresHumanVerification ?? true,
         analysisSource: response.analysisSource ?? "FALLBACK_RULES",
+        translationProvider: response.translationProvider ?? null,
         issueTitle: response.issueTitle ?? titleFromParts(response.subcategory, response.category),
         detectedLabels: response.detectedLabels ?? []
       })),
@@ -513,6 +540,7 @@ function mapBackendComplaint(complaint: BackendComplaint): Complaint {
     analysisSource: complaint.analysisSource ?? null,
     requiresHumanVerification: complaint.requiresHumanVerification ?? true,
     reasoningSummary: complaint.reasoningSummary ?? null,
+    translationProvider: complaint.translationProvider ?? null,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt
   };

@@ -23,18 +23,30 @@ class ComplaintAnalysisRequest(BaseModel):
     photo_url: str | None = Field(default=None, alias="photoUrl")
     latitude: Latitude | None = None
     longitude: Longitude | None = None
+    landmark: str | None = None
+    category_hint: str | None = Field(default=None, alias="categoryHint")
 
     model_config = ConfigDict(populate_by_name=True)
 
 
 class ComplaintAnalysisResponse(BaseModel):
+    original_text: str | None = Field(default=None, alias="originalText")
     normalized_english_text: str = Field(alias="normalizedEnglishText")
+    original_language: SupportedLanguage | None = Field(default=None, alias="originalLanguage")
+    detected_language: str | None = Field(default=None, alias="detectedLanguage")
     category: ComplaintCategory
     subcategory: str
+    department: ComplaintDepartment | None = None
     priority: ComplaintPriority
     location_text: str | None = Field(alias="locationText")
     missing_fields: list[str] = Field(alias="missingFields")
     follow_up_question: str | None = Field(alias="followUpQuestion")
+    citizen_reply: str | None = Field(default=None, alias="citizenReply")
+    reasoning_summary: str | None = Field(default=None, alias="reasoningSummary")
+    requires_human_verification: bool = Field(default=True, alias="requiresHumanVerification")
+    analysis_source: AnalysisSource | None = Field(default=AnalysisSource.FALLBACK_RULES, alias="analysisSource")
+    translation_provider: str | None = Field(default=None, alias="translationProvider")
+    issue_title: str | None = Field(default=None, alias="issueTitle")
 
     model_config = ConfigDict(populate_by_name=True, use_enum_values=True)
 

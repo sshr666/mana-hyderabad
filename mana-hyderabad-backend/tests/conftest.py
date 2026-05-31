@@ -40,3 +40,8 @@ def db_session():
 @pytest.fixture()
 def api_base_url() -> str:
     return os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+
+
+@pytest.fixture()
+def anyio_backend() -> str:
+    return "asyncio"

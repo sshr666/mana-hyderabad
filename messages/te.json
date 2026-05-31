@@ -80,6 +80,12 @@
     "trackComplaint": "ఫిర్యాదు ట్రాక్ చేయండి",
     "reportAnother": "మరో సమస్యను నివేదించండి"
   },
+  "translation": {
+    "unavailable": "అనువాదం అందుబాటులో లేదు",
+    "originalMessage": "అసలు సందేశం",
+    "englishTranslation": "English అనువాదం",
+    "humanVerification": "యంత్ర అనువాదానికి మానవ ధృవీకరణ అవసరం."
+  },
   "track": {
     "title": "ఫిర్యాదు ట్రాక్ చేయండి",
     "label": "ఫిర్యాదు రిఫరెన్స్ ID",

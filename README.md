@@ -576,7 +576,7 @@ The proof of concept may not include:
 
 ## 18. License
 
-Add an open-source license before public release. MIT or Apache 2.0 are common choices for student civic-tech projects.
+Mana Hyderabad is released under the GNU Affero General Public License v3.0 or later. See [LICENSE](LICENSE).
 
 ---
 

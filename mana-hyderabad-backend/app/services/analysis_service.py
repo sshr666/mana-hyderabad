@@ -1,8 +1,11 @@
-from app.models.complaint import ComplaintCategory, ComplaintPriority
+from app.models.complaint import AnalysisSource, ComplaintCategory, ComplaintDepartment, ComplaintPriority
 from app.schemas.complaint import ComplaintAnalysisRequest, ComplaintAnalysisResponse
+from app.services.translation_service import normalize_complaint_to_english, translate_citizen_reply
 
 
 LOCALITIES = [
+    "Madhapur Metro",
+    "Gachibowli signal",
     "Kondapur",
     "Madhapur",
     "Gachibowli",
@@ -21,29 +24,45 @@ LOCALITIES = [
 ]
 
 
-def analyse_complaint(request: ComplaintAnalysisRequest) -> ComplaintAnalysisResponse:
-    text = request.text.strip()
+async def analyse_complaint(request: ComplaintAnalysisRequest) -> ComplaintAnalysisResponse:
+    original_text = request.text.strip()
+    normalized = await normalize_complaint_to_english(original_text, request.language.value)
+    text = normalized.normalized_english_text
     lower = text.lower()
     category, subcategory, priority, issue = _classify(lower)
     location_text = _extract_location(text)
+    if not location_text:
+        location_text = _extract_location(original_text)
+    if request.landmark and not location_text:
+        location_text = request.landmark
     missing_fields = []
     if request.latitude is None:
         missing_fields.append("latitude")
     if request.longitude is None:
         missing_fields.append("longitude")
+    follow_up = "Please share the exact location or select it on the map." if missing_fields else None
+    citizen_reply = None
+    if follow_up:
+        citizen_reply = (await translate_citizen_reply(follow_up, request.language.value)).translated_text
 
     return ComplaintAnalysisResponse(
+        originalText=original_text,
         normalizedEnglishText=_normalize_text(text, category, location_text, issue),
+        originalLanguage=request.language,
+        detectedLanguage=normalized.detected_language,
         category=category,
         subcategory=subcategory,
+        department=_department_for_category(category),
         priority=priority,
         locationText=location_text,
         missingFields=missing_fields,
-        followUpQuestion=(
-            "Please share the exact location or select it on the map."
-            if missing_fields
-            else None
-        ),
+        followUpQuestion=follow_up,
+        citizenReply=citizen_reply,
+        reasoningSummary=f"{issue.title()} reported{f' near {location_text}' if location_text else ''}.",
+        requiresHumanVerification=True,
+        analysisSource=AnalysisSource.FALLBACK_RULES,
+        translationProvider=normalized.provider,
+        issueTitle=subcategory.replace("_", " ").title(),
     )
 
 
@@ -80,6 +99,10 @@ def _extract_location(text: str) -> str | None:
             return locality
     if "چارمینار" in text:
         return "Charminar"
+    if "మాధాపూర్" in text:
+        return "Madhapur Metro" if "మెట్రో" in text else "Madhapur"
+    if "गाचीबोवली" in text:
+        return "Gachibowli signal" if "सिग्नल" in text else "Gachibowli"
     if "near " in lower:
         return text[text.lower().index("near ") + 5 :].strip(" .")
     return None
@@ -91,3 +114,18 @@ def _normalize_text(text: str, category: ComplaintCategory, location_text: str |
     if category == ComplaintCategory.OTHER:
         return text
     return f"There is {issue}."
+
+
+def _department_for_category(category: ComplaintCategory) -> ComplaintDepartment:
+    departments = {
+        ComplaintCategory.SANITATION: ComplaintDepartment.SANITATION,
+        ComplaintCategory.DRAINAGE: ComplaintDepartment.DRAINAGE,
+        ComplaintCategory.WATERLOGGING: ComplaintDepartment.DRAINAGE,
+        ComplaintCategory.ROADS: ComplaintDepartment.ROADS,
+        ComplaintCategory.STREET_LIGHTS: ComplaintDepartment.ELECTRICAL,
+        ComplaintCategory.WATER_SUPPLY: ComplaintDepartment.WATER_SUPPLY,
+        ComplaintCategory.TRAFFIC: ComplaintDepartment.TRAFFIC,
+        ComplaintCategory.PUBLIC_HEALTH: ComplaintDepartment.PUBLIC_HEALTH,
+        ComplaintCategory.OTHER: ComplaintDepartment.MANUAL_REVIEW,
+    }
+    return departments[category]

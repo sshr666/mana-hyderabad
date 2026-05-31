@@ -1,10 +1,10 @@
 "use client";
 
-import {useEffect, useRef, useState} from "react";
-import {Camera, CheckCircle2, ImagePlus, Loader2, RotateCcw, Trash2, Upload} from "lucide-react";
-import {uploadComplaintImage} from "@/lib/api-client";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent} from "@/components/ui/card";
+import { useEffect, useRef, useState } from "react";
+import { Camera, CheckCircle2, ImagePlus, Loader2, RotateCcw, Trash2, Upload } from "lucide-react";
+import { uploadComplaintImage } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface PhotoUploadProps {
   photoUrl: string | null;
@@ -15,7 +15,7 @@ interface PhotoUploadProps {
 const maxSizeBytes = 8 * 1024 * 1024;
 const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadProps) {
+export function PhotoUpload({ photoUrl, detectedLabels, onChange }: PhotoUploadProps) {
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -61,7 +61,11 @@ export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadPro
       onChange(result.photoUrl, ["Image submitted by citizen", "Field verification is required"]);
       setUploaded(true);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Could not upload image. Please try again.");
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload image. Please try again."
+      );
     } finally {
       setUploading(false);
     }
@@ -113,7 +117,11 @@ export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadPro
             Skip for Now
           </Button>
         </div>
-        {error && <p className="text-sm text-destructive">{error} You can skip the photo and continue reporting the complaint.</p>}
+        {error && (
+          <p className="text-sm text-destructive">
+            {error} You can skip the photo and continue reporting the complaint.
+          </p>
+        )}
       </div>
     );
   }
@@ -127,10 +135,18 @@ export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadPro
         {displayUrl && (
           <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={displayUrl} alt="Selected civic issue" className="h-full w-full object-cover" />
+            <img
+              src={displayUrl}
+              alt="Selected civic issue"
+              className="h-full w-full object-cover"
+            />
           </div>
         )}
-        {error && <p className="text-sm text-destructive">{error} You can skip the photo and continue reporting the complaint.</p>}
+        {error && (
+          <p className="text-sm text-destructive">
+            {error} You can skip the photo and continue reporting the complaint.
+          </p>
+        )}
         {uploaded && (
           <div className="flex items-center gap-2 rounded-lg border bg-secondary/40 p-3 text-sm text-primary">
             <CheckCircle2 className="h-4 w-4" />
@@ -139,7 +155,9 @@ export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadPro
         )}
         {detectedLabels.length > 0 && (
           <div className="rounded-lg border bg-secondary/40 p-3 text-sm">
-            <p className="font-medium">The image appears to show a possible issue. Field verification is required.</p>
+            <p className="font-medium">
+              The image appears to show a possible issue. Field verification is required.
+            </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
               {detectedLabels.map((label) => (
                 <li key={label}>{label}</li>
@@ -150,7 +168,11 @@ export function PhotoUpload({photoUrl, detectedLabels, onChange}: PhotoUploadPro
         <div className="flex flex-wrap gap-2">
           {selectedFile && !uploaded && (
             <Button type="button" onClick={uploadSelected} disabled={uploading}>
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
               {uploading ? "Uploading..." : "Upload Photo"}
             </Button>
           )}

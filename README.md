@@ -2,7 +2,9 @@
 
 Mana Hyderabad is a multilingual civic-tech platform that helps residents report civic issues quickly and helps municipal teams prioritise complaints intelligently.
 
-- **Website Link** : https://mana-hyderabad.vercel.app/
+- **Website Link**: https://mana-hyderabad.vercel.app/
+
+**License:** GNU Affero General Public License v3.0 or later. See [LICENSE](LICENSE).
 
 ## Repository Layout
 
@@ -77,15 +79,15 @@ Mana Hyderabad addresses these gaps with a multilingual AI-assisted complaint wo
 
 The first version focuses on visible and easily verifiable civic issues:
 
-| Category | Example complaints |
-|---|---|
-| Sanitation | Garbage accumulation, overflowing bins, construction debris |
-| Drainage | Blocked drains, stagnant water, open drains |
-| Roads | Potholes, damaged road surfaces, broken manhole covers |
-| Street lights | Non-functional lights, damaged poles |
-| Water supply | Leakage, low pressure, suspected contamination |
-| Traffic | Signal malfunction, unsafe congestion point |
-| Public health | Mosquito-breeding risk, stagnant water near residences |
+| Category      | Example complaints                                          |
+| ------------- | ----------------------------------------------------------- |
+| Sanitation    | Garbage accumulation, overflowing bins, construction debris |
+| Drainage      | Blocked drains, stagnant water, open drains                 |
+| Roads         | Potholes, damaged road surfaces, broken manhole covers      |
+| Street lights | Non-functional lights, damaged poles                        |
+| Water supply  | Leakage, low pressure, suspected contamination              |
+| Traffic       | Signal malfunction, unsafe congestion point                 |
+| Public health | Mosquito-breeding risk, stagnant water near residences      |
 
 ---
 
@@ -193,21 +195,21 @@ Map | Filters | Hotspots | Status updates
 
 ## 6. Recommended Technology Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Frontend | Next.js, TypeScript, Tailwind CSS | Mobile-friendly citizen portal and admin dashboard |
-| Mapping | MapLibre GL JS | Interactive complaint map |
-| Backend | FastAPI, Python | REST APIs and AI orchestration |
-| Database | PostgreSQL | Complaint storage |
-| Geospatial queries | PostGIS | Radius search, hotspot mapping, ward-level analysis |
-| Similarity search | pgvector | Semantic duplicate detection |
-| File storage | Supabase Storage, Cloudinary, or S3-compatible storage | Uploaded images and audio |
-| Translation | BHASHINI APIs or AI4Bharat IndicTrans2 | Indian-language translation |
-| Speech | BHASHINI ASR and TTS | Voice input and spoken responses |
-| LLM layer | Multilingual LLM API or locally hosted instruct model | Extraction, routing, follow-up questions, summaries |
-| Computer vision | YOLO or a lightweight image classifier | Detect visible civic issues |
-| Deployment | Docker, Render, Railway, or a cloud VM | Hosting |
-| Optional analytics | Metabase or custom dashboard | Trends and hotspot analysis |
+| Layer              | Technology                                             | Purpose                                             |
+| ------------------ | ------------------------------------------------------ | --------------------------------------------------- |
+| Frontend           | Next.js, TypeScript, Tailwind CSS                      | Mobile-friendly citizen portal and admin dashboard  |
+| Mapping            | MapLibre GL JS                                         | Interactive complaint map                           |
+| Backend            | FastAPI, Python                                        | REST APIs and AI orchestration                      |
+| Database           | PostgreSQL                                             | Complaint storage                                   |
+| Geospatial queries | PostGIS                                                | Radius search, hotspot mapping, ward-level analysis |
+| Similarity search  | pgvector                                               | Semantic duplicate detection                        |
+| File storage       | Supabase Storage, Cloudinary, or S3-compatible storage | Uploaded images and audio                           |
+| Translation        | BHASHINI APIs or AI4Bharat IndicTrans2                 | Indian-language translation                         |
+| Speech             | BHASHINI ASR and TTS                                   | Voice input and spoken responses                    |
+| LLM layer          | Multilingual LLM API or locally hosted instruct model  | Extraction, routing, follow-up questions, summaries |
+| Computer vision    | YOLO or a lightweight image classifier                 | Detect visible civic issues                         |
+| Deployment         | Docker, Render, Railway, or a cloud VM                 | Hosting                                             |
+| Optional analytics | Metabase or custom dashboard                           | Trends and hotspot analysis                         |
 
 ---
 
@@ -302,44 +304,44 @@ Use phrases such as "appears to show" and "requires field verification."
 
 ### complaints
 
-| Field | Description |
-|---|---|
-| id | Unique complaint reference |
-| original_text | Citizen's original complaint |
-| normalized_text | Internal English version |
-| language_code | en, te, hi, ur, or mixed |
-| category | Main complaint type |
-| subcategory | Detailed issue type |
-| severity | LOW, MEDIUM, HIGH, or EMERGENCY |
-| latitude | GPS latitude |
-| longitude | GPS longitude |
-| landmark | Optional typed landmark |
-| image_url | Uploaded photograph |
-| audio_url | Optional voice recording |
-| vision_labels | AI-detected image labels |
-| status | SUBMITTED, UNDER_REVIEW, ASSIGNED, RESOLVED |
-| duplicate_of | Existing complaint ID, when applicable |
-| created_at | Submission timestamp |
-| updated_at | Last modified timestamp |
+| Field           | Description                                 |
+| --------------- | ------------------------------------------- |
+| id              | Unique complaint reference                  |
+| original_text   | Citizen's original complaint                |
+| normalized_text | Internal English version                    |
+| language_code   | en, te, hi, ur, or mixed                    |
+| category        | Main complaint type                         |
+| subcategory     | Detailed issue type                         |
+| severity        | LOW, MEDIUM, HIGH, or EMERGENCY             |
+| latitude        | GPS latitude                                |
+| longitude       | GPS longitude                               |
+| landmark        | Optional typed landmark                     |
+| image_url       | Uploaded photograph                         |
+| audio_url       | Optional voice recording                    |
+| vision_labels   | AI-detected image labels                    |
+| status          | SUBMITTED, UNDER_REVIEW, ASSIGNED, RESOLVED |
+| duplicate_of    | Existing complaint ID, when applicable      |
+| created_at      | Submission timestamp                        |
+| updated_at      | Last modified timestamp                     |
 
 ### departments
 
-| Field | Description |
-|---|---|
-| id | Department identifier |
-| name | Department name |
+| Field                | Description                                   |
+| -------------------- | --------------------------------------------- |
+| id                   | Department identifier                         |
+| name                 | Department name                               |
 | supported_categories | Complaint categories routed to the department |
 
 ### status_history
 
-| Field | Description |
-|---|---|
-| id | History record ID |
+| Field        | Description       |
+| ------------ | ----------------- |
+| id           | History record ID |
 | complaint_id | Related complaint |
-| old_status | Previous status |
-| new_status | Updated status |
-| updated_by | Admin or system |
-| updated_at | Update timestamp |
+| old_status   | Previous status   |
+| new_status   | Updated status    |
+| updated_by   | Admin or system   |
+| updated_at   | Update timestamp  |
 
 ---
 
@@ -513,18 +515,18 @@ mana-hyderabad/
 
 ## 14. API Endpoints
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/complaints` | Submit complaint |
-| GET | `/api/complaints/{id}` | Retrieve complaint |
-| GET | `/api/complaints` | Filter complaint list |
-| POST | `/api/complaints/{id}/attachments` | Upload image or audio |
-| POST | `/api/complaints/{id}/analyse` | Run AI analysis |
-| GET | `/api/complaints/{id}/duplicates` | Find possible duplicates |
-| PATCH | `/api/complaints/{id}/status` | Update status |
-| GET | `/api/hotspots` | Retrieve hotspot clusters |
-| POST | `/api/translate` | Translate message |
-| POST | `/api/transcribe` | Convert voice to text |
+| Method | Endpoint                           | Purpose                   |
+| ------ | ---------------------------------- | ------------------------- |
+| POST   | `/api/complaints`                  | Submit complaint          |
+| GET    | `/api/complaints/{id}`             | Retrieve complaint        |
+| GET    | `/api/complaints`                  | Filter complaint list     |
+| POST   | `/api/complaints/{id}/attachments` | Upload image or audio     |
+| POST   | `/api/complaints/{id}/analyse`     | Run AI analysis           |
+| GET    | `/api/complaints/{id}/duplicates`  | Find possible duplicates  |
+| PATCH  | `/api/complaints/{id}/status`      | Update status             |
+| GET    | `/api/hotspots`                    | Retrieve hotspot clusters |
+| POST   | `/api/translate`                   | Translate message         |
+| POST   | `/api/transcribe`                  | Convert voice to text     |
 
 ---
 

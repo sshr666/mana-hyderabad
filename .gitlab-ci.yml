@@ -1,0 +1,71 @@
+stages:
+  - quality
+  - test
+  - build
+  - security
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.cache/npm"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+    - .cache/npm
+
+frontend_quality:
+  image: node:20
+  stage: quality
+  script:
+    - npm ci
+    - npm run format:check
+    - npm run lint
+    - npm run knip || true
+
+frontend_tests:
+  image: node:20
+  stage: test
+  script:
+    - npm ci
+    - npm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)/'
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+
+frontend_build:
+  image: node:20
+  stage: build
+  script:
+    - npm ci
+    - npm run build
+
+backend_tests:
+  image: python:3.11
+  stage: test
+  before_script:
+    - cd mana-hyderabad-backend
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+  script:
+    - pytest
+
+dependency_audit:
+  image: python:3.11
+  stage: security
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install pip-audit
+  script:
+    - npm audit --audit-level=high
+    - cd mana-hyderabad-backend && pip-audit -r requirements.txt
+
+secret_scan:
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  stage: security
+  script:
+    - gitleaks detect --source . --config .gitleaks.toml --redact --verbose

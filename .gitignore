@@ -2,6 +2,8 @@ node_modules
 .next
 out
 dist
+coverage
+.turbo
 .venv
 __pycache__
 *.pyc
@@ -10,5 +12,6 @@ __pycache__
 .ruff_cache
 .env
 .env.local
+.env.*.local
 .DS_Store
 npm-debug.log*

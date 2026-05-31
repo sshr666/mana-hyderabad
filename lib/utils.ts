@@ -1,6 +1,6 @@
-import {type ClassValue, clsx} from "clsx";
-import {twMerge} from "tailwind-merge";
-import type {ComplaintPriority, ComplaintStatus, SupportedLanguage} from "@/lib/types";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import type { ComplaintPriority, ComplaintStatus, SupportedLanguage } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

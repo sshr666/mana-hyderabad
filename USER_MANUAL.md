@@ -188,13 +188,13 @@ Enter the complaint reference number.
 
 Possible statuses:
 
-| Status | Meaning |
-|---|---|
-| `SUBMITTED` | Complaint has been recorded |
-| `UNDER_REVIEW` | Complaint is being reviewed |
-| `ASSIGNED` | Complaint has been assigned for action |
-| `RESOLVED` | Complaint has been marked as resolved |
-| `CLOSED` | Complaint workflow has been completed |
+| Status         | Meaning                                |
+| -------------- | -------------------------------------- |
+| `SUBMITTED`    | Complaint has been recorded            |
+| `UNDER_REVIEW` | Complaint is being reviewed            |
+| `ASSIGNED`     | Complaint has been assigned for action |
+| `RESOLVED`     | Complaint has been marked as resolved  |
+| `CLOSED`       | Complaint workflow has been completed  |
 
 For the proof of concept, these statuses are demo workflow states and may not reflect an official government action.
 
@@ -290,15 +290,15 @@ Markers may be clustered in high-density areas.
 
 Use filters such as:
 
-| Filter | Example |
-|---|---|
-| Category | Sanitation, Drainage, Roads |
-| Severity | Low, Medium, High, Emergency |
-| Status | Submitted, Under Review, Assigned, Resolved |
-| Language | English, Telugu, Hindi, Urdu |
-| Date range | Today, last 7 days, custom |
-| Duplicate status | Possible duplicate, unique |
-| Location | Locality, ward, radius |
+| Filter           | Example                                     |
+| ---------------- | ------------------------------------------- |
+| Category         | Sanitation, Drainage, Roads                 |
+| Severity         | Low, Medium, High, Emergency                |
+| Status           | Submitted, Under Review, Assigned, Resolved |
+| Language         | English, Telugu, Hindi, Urdu                |
+| Date range       | Today, last 7 days, custom                  |
+| Duplicate status | Possible duplicate, unique                  |
+| Location         | Locality, ward, radius                      |
 
 ---
 

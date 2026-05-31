@@ -1,10 +1,10 @@
 import Image from "next/image";
-import type {ComplaintAnalysis} from "@/lib/types";
-import type {LocationValue} from "@/components/citizen/location-picker";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {priorityTone} from "@/lib/utils";
+import type { ComplaintAnalysis } from "@/lib/types";
+import type { LocationValue } from "@/components/citizen/location-picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { priorityTone } from "@/lib/utils";
 
 interface ComplaintReviewProps {
   analysis: ComplaintAnalysis;
@@ -59,7 +59,7 @@ export function ComplaintReview({
   );
 }
 
-function ReviewRow({label, value}: {label: string; value: string}) {
+function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b pb-3 last:border-b-0">
       <span className="text-sm text-muted-foreground">{label}</span>

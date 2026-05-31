@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+out
+coverage
+mana-hyderabad-backend/.venv
+mana-hyderabad-backend/alembic/versions
+package-lock.json

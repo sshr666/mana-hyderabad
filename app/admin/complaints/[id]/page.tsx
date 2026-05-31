@@ -1,14 +1,23 @@
-import {notFound} from "next/navigation";
-import {getAdminComplaints, getComplaint} from "@/lib/api-client";
-import {ComplaintDetailPanel} from "@/components/admin/complaint-detail-panel";
+import { notFound } from "next/navigation";
+import { getAdminComplaints, getComplaint } from "@/lib/api-client";
+import { ComplaintDetailPanel } from "@/components/admin/complaint-detail-panel";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminComplaintDetailPage({params}: {params: Promise<{id: string}>}) {
-  const {id} = await params;
-  const [complaint, complaintList] = await Promise.all([getComplaint(id), getAdminComplaints({pageSize: 100})]);
+export default async function AdminComplaintDetailPage({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const [complaint, complaintList] = await Promise.all([
+    getComplaint(id),
+    getAdminComplaints({ pageSize: 100 })
+  ]);
   if (!complaint) notFound();
-  const duplicates = complaintList.items.filter((item) => complaint.possibleDuplicateIds?.includes(item.id));
+  const duplicates = complaintList.items.filter((item) =>
+    complaint.possibleDuplicateIds?.includes(item.id)
+  );
 
   return (
     <div className="space-y-6 p-6">

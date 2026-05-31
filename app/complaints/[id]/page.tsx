@@ -1,16 +1,16 @@
-import {notFound} from "next/navigation";
-import {getTranslations} from "next-intl/server";
-import {getComplaint} from "@/lib/api-client";
-import {StatusStepper} from "@/components/citizen/status-stepper";
-import {LanguageChangeButton} from "@/components/citizen/language-change-button";
-import {Badge} from "@/components/ui/badge";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {formatDateTime, priorityTone, statusTone} from "@/lib/utils";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { getComplaint } from "@/lib/api-client";
+import { StatusStepper } from "@/components/citizen/status-stepper";
+import { LanguageChangeButton } from "@/components/citizen/language-change-button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateTime, priorityTone, statusTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function ComplaintStatusPage({params}: {params: Promise<{id: string}>}) {
-  const {id} = await params;
+export default async function ComplaintStatusPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [complaint, t] = await Promise.all([getComplaint(id), getTranslations()]);
   if (!complaint) notFound();
 
@@ -21,7 +21,9 @@ export default async function ComplaintStatusPage({params}: {params: Promise<{id
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-primary">Complaint {complaint.id}</p>
-              <CardTitle className="mt-2 text-2xl">{complaint.subcategory.replaceAll("_", " ")}</CardTitle>
+              <CardTitle className="mt-2 text-2xl">
+                {complaint.subcategory.replaceAll("_", " ")}
+              </CardTitle>
             </div>
             <LanguageChangeButton />
           </div>
@@ -29,10 +31,14 @@ export default async function ComplaintStatusPage({params}: {params: Promise<{id
         <CardContent className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2">
             <Info label={t("track.status")}>
-              <Badge className={statusTone(complaint.status)}>{t(`status.${complaint.status}`)}</Badge>
+              <Badge className={statusTone(complaint.status)}>
+                {t(`status.${complaint.status}`)}
+              </Badge>
             </Info>
             <Info label={t("detail.priority")}>
-              <Badge className={priorityTone(complaint.priority)}>{t(`priority.${complaint.priority}`)}</Badge>
+              <Badge className={priorityTone(complaint.priority)}>
+                {t(`priority.${complaint.priority}`)}
+              </Badge>
             </Info>
             <Info label={t("track.reported")}>{formatDateTime(complaint.createdAt)}</Info>
             <Info label={t("detail.location")}>{complaint.landmark}</Info>
@@ -45,7 +51,11 @@ export default async function ComplaintStatusPage({params}: {params: Promise<{id
             {complaint.photoUrl ? (
               <div className="mt-3 overflow-hidden rounded-lg border bg-card">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={complaint.photoUrl} alt={`Photo submitted for complaint ${complaint.id}`} className="max-h-96 w-full object-cover" />
+                <img
+                  src={complaint.photoUrl}
+                  alt={`Photo submitted for complaint ${complaint.id}`}
+                  className="max-h-96 w-full object-cover"
+                />
               </div>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">No image uploaded.</p>
@@ -66,7 +76,7 @@ export default async function ComplaintStatusPage({params}: {params: Promise<{id
   );
 }
 
-function Info({label, children}: {label: string; children: React.ReactNode}) {
+function Info({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>

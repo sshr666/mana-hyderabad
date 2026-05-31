@@ -1,0 +1,12 @@
+{
+  "entry": [
+    "app/**/*.tsx",
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    "next.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.mjs"
+  ],
+  "project": ["**/*.{ts,tsx,js,mjs}"],
+  "ignore": [".next/**", "node_modules/**"]
+}

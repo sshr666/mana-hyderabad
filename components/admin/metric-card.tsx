@@ -1,7 +1,15 @@
-import type {LucideIcon} from "lucide-react";
-import {Card, CardContent} from "@/components/ui/card";
+import type { LucideIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
-export function MetricCard({label, value, icon: Icon}: {label: string; value: string | number; icon: LucideIcon}) {
+export function MetricCard({
+  label,
+  value,
+  icon: Icon
+}: {
+  label: string;
+  value: string | number;
+  icon: LucideIcon;
+}) {
   return (
     <Card>
       <CardContent className="flex items-center justify-between p-5">

@@ -1,4 +1,4 @@
-import type {AnalyticsSummary, Complaint} from "@/lib/types";
+import type { AnalyticsSummary, Complaint } from "@/lib/types";
 
 const rawComplaints: Array<Omit<Complaint, "referenceId">> = [
   {
@@ -11,7 +11,8 @@ const rawComplaints: Array<Omit<Complaint, "referenceId">> = [
     landmark: "Near Madhapur Metro",
     latitude: 17.4474,
     longitude: 78.3915,
-    photoUrl: "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80",
+    photoUrl:
+      "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80",
     detectedLabels: ["garbage accumulation", "possible drain blockage"],
     priority: "MEDIUM",
     status: "UNDER_REVIEW",
@@ -30,7 +31,8 @@ const rawComplaints: Array<Omit<Complaint, "referenceId">> = [
     landmark: "Outside Madhapur station",
     latitude: 17.4478,
     longitude: 78.3919,
-    photoUrl: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=900&q=80",
+    photoUrl:
+      "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=900&q=80",
     detectedLabels: ["garbage accumulation"],
     priority: "MEDIUM",
     status: "ASSIGNED",
@@ -44,7 +46,8 @@ const rawComplaints: Array<Omit<Complaint, "referenceId">> = [
     category: "ROADS",
     subcategory: "POTHOLE",
     originalText: "Large pothole on the service road near Cyber Towers, Hitech City.",
-    normalizedEnglishText: "There is a large pothole on the service road near Cyber Towers, Hitech City.",
+    normalizedEnglishText:
+      "There is a large pothole on the service road near Cyber Towers, Hitech City.",
     originalLanguage: "en",
     landmark: "Near Cyber Towers, Hitech City",
     latitude: 17.4505,
@@ -219,20 +222,20 @@ export const analyticsSummary: AnalyticsSummary = {
   resolvedToday: 36,
   possibleDuplicates: 24,
   trend: [
-    {day: "Mon", complaints: 86, resolved: 42},
-    {day: "Tue", complaints: 104, resolved: 51},
-    {day: "Wed", complaints: 96, resolved: 60},
-    {day: "Thu", complaints: 128, resolved: 73},
-    {day: "Fri", complaints: 117, resolved: 69},
-    {day: "Sat", complaints: 142, resolved: 36}
+    { day: "Mon", complaints: 86, resolved: 42 },
+    { day: "Tue", complaints: 104, resolved: 51 },
+    { day: "Wed", complaints: 96, resolved: 60 },
+    { day: "Thu", complaints: 128, resolved: 73 },
+    { day: "Fri", complaints: 117, resolved: 69 },
+    { day: "Sat", complaints: 142, resolved: 36 }
   ],
   categories: [
-    {category: "Sanitation", count: 46},
-    {category: "Drainage", count: 33},
-    {category: "Roads", count: 26},
-    {category: "Waterlogging", count: 18},
-    {category: "Lights", count: 11},
-    {category: "Traffic", count: 8}
+    { category: "Sanitation", count: 46 },
+    { category: "Drainage", count: 33 },
+    { category: "Roads", count: 26 },
+    { category: "Waterlogging", count: 18 },
+    { category: "Lights", count: 11 },
+    { category: "Traffic", count: 8 }
   ],
   localities: [],
   wards: [],

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {useTranslations} from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   CloudRain,
   Construction,
@@ -14,19 +14,19 @@ import {
   Trash2,
   Waves
 } from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent} from "@/components/ui/card";
-import {LanguageChangeButton} from "@/components/citizen/language-change-button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { LanguageChangeButton } from "@/components/citizen/language-change-button";
 
 const issueCards = [
-  {key: "garbage", icon: Trash2},
-  {key: "blockedDrain", icon: Waves},
-  {key: "waterlogging", icon: CloudRain},
-  {key: "pothole", icon: Construction},
-  {key: "streetLight", icon: Lightbulb},
-  {key: "waterSupply", icon: Droplets},
-  {key: "trafficSignal", icon: TrafficCone},
-  {key: "other", icon: MoreHorizontal}
+  { key: "garbage", icon: Trash2 },
+  { key: "blockedDrain", icon: Waves },
+  { key: "waterlogging", icon: CloudRain },
+  { key: "pothole", icon: Construction },
+  { key: "streetLight", icon: Lightbulb },
+  { key: "waterSupply", icon: Droplets },
+  { key: "trafficSignal", icon: TrafficCone },
+  { key: "other", icon: MoreHorizontal }
 ] as const;
 
 export default function HomePage() {
@@ -73,7 +73,9 @@ export default function HomePage() {
         })}
       </section>
 
-      <p className="mt-auto pt-8 text-center text-sm text-muted-foreground">{t("home.trustNote")}</p>
+      <p className="mt-auto pt-8 text-center text-sm text-muted-foreground">
+        {t("home.trustNote")}
+      </p>
     </main>
   );
 }

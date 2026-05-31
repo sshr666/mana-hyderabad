@@ -1,9 +1,9 @@
 "use client";
 
-import {NextIntlClientProvider} from "next-intl";
-import {createContext, useContext, useEffect, useMemo, useState} from "react";
-import type {SupportedLanguage} from "@/lib/types";
-import {getDirection, messages} from "@/lib/translations";
+import { NextIntlClientProvider } from "next-intl";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { SupportedLanguage } from "@/lib/types";
+import { getDirection, messages } from "@/lib/translations";
 
 interface LocaleContextValue {
   locale: SupportedLanguage;
@@ -13,7 +13,7 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-export function LocaleProvider({children}: {children: React.ReactNode}) {
+export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<SupportedLanguage>("en");
 
   useEffect(() => {
@@ -29,7 +29,10 @@ export function LocaleProvider({children}: {children: React.ReactNode}) {
     document.cookie = `mana-language=${nextLocale}; path=/; max-age=31536000`;
   };
 
-  const value = useMemo<LocaleContextValue>(() => ({locale, setLocale, dir: getDirection(locale)}), [locale]);
+  const value = useMemo<LocaleContextValue>(
+    () => ({ locale, setLocale, dir: getDirection(locale) }),
+    [locale]
+  );
 
   useEffect(() => {
     document.documentElement.lang = locale;

@@ -1,0 +1,12 @@
+.git
+.next
+node_modules
+coverage
+dist
+out
+.env
+.env.local
+*.log
+mana-hyderabad-backend/.venv
+mana-hyderabad-backend/__pycache__
+mana-hyderabad-backend/.pytest_cache

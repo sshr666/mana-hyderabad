@@ -1,18 +1,18 @@
 "use client";
 
-import {useRouter} from "next/navigation";
-import {useTranslations} from "next-intl";
-import {Building2} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent} from "@/components/ui/card";
-import {useLocaleSettings} from "@/components/locale-provider";
-import {languageOptions} from "@/lib/translations";
-import type {SupportedLanguage} from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useLocaleSettings } from "@/components/locale-provider";
+import { languageOptions } from "@/lib/translations";
+import type { SupportedLanguage } from "@/lib/types";
 
 export function LanguageSelector() {
   const router = useRouter();
   const t = useTranslations("common");
-  const {setLocale} = useLocaleSettings();
+  const { setLocale } = useLocaleSettings();
 
   const chooseLanguage = (language: SupportedLanguage) => {
     setLocale(language);
@@ -34,7 +34,9 @@ export function LanguageSelector() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-center text-sm font-medium text-muted-foreground">{t("chooseLanguage")}</p>
+            <p className="text-center text-sm font-medium text-muted-foreground">
+              {t("chooseLanguage")}
+            </p>
             <div className="grid gap-3">
               {languageOptions.map((language) => (
                 <Button

@@ -1,13 +1,13 @@
 "use client";
 
-import {useTranslations} from "next-intl";
-import {Check} from "lucide-react";
-import {cn} from "@/lib/utils";
-import type {ComplaintStatus} from "@/lib/types";
+import { useTranslations } from "next-intl";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { ComplaintStatus } from "@/lib/types";
 
 const steps: ComplaintStatus[] = ["SUBMITTED", "UNDER_REVIEW", "ASSIGNED", "RESOLVED"];
 
-export function StatusStepper({status}: {status: ComplaintStatus}) {
+export function StatusStepper({ status }: { status: ComplaintStatus }) {
   const t = useTranslations("status");
   const currentIndex = status === "IN_PROGRESS" ? 2 : steps.indexOf(status);
 
@@ -20,7 +20,9 @@ export function StatusStepper({status}: {status: ComplaintStatus}) {
             <div
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold",
-                active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"
+                active
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card text-muted-foreground"
               )}
             >
               {active ? <Check className="h-4 w-4" /> : index + 1}

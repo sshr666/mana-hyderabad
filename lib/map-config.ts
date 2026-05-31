@@ -1,4 +1,4 @@
-import type {ComplaintCategory} from "@/lib/types";
+import type { ComplaintCategory } from "@/lib/types";
 
 export const HYDERABAD_CENTER = {
   latitude: 17.385,
@@ -7,7 +7,8 @@ export const HYDERABAD_CENTER = {
 
 export const DEFAULT_MAP_ZOOM = 10.7;
 export const FALLBACK_MAP_ZOOM = 12;
-export const MAP_STYLE_URL = process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://demotiles.maplibre.org/style.json";
+export const MAP_STYLE_URL =
+  process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://demotiles.maplibre.org/style.json";
 
 export const CATEGORY_LABELS: Record<ComplaintCategory, string> = {
   SANITATION: "Sanitation",

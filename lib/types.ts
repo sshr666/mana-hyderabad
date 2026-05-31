@@ -197,10 +197,10 @@ export interface AdminAnalyticsResponse {
   highPriorityIssues: number;
   resolvedToday: number;
   possibleDuplicates: number;
-  complaintsByCategory: Array<{category: ComplaintCategory | string; count: number}>;
-  complaintsByDate: Array<{date: string; count: number}>;
-  complaintsByLocality: Array<{locality: string; count: number}>;
-  complaintsByWard: Array<{wardNumber: number | null; wardName: string | null; count: number}>;
+  complaintsByCategory: Array<{ category: ComplaintCategory | string; count: number }>;
+  complaintsByDate: Array<{ date: string; count: number }>;
+  complaintsByLocality: Array<{ locality: string; count: number }>;
+  complaintsByWard: Array<{ wardNumber: number | null; wardName: string | null; count: number }>;
   hotspots: Hotspot[];
 }
 
@@ -209,10 +209,10 @@ export interface AnalyticsSummary {
   highPriorityIssues: number;
   resolvedToday: number;
   possibleDuplicates: number;
-  trend: Array<{day: string; complaints: number; resolved: number}>;
-  categories: Array<{category: string; count: number}>;
-  localities: Array<{locality: string; count: number}>;
-  wards: Array<{wardNumber: number | null; wardName: string | null; count: number}>;
+  trend: Array<{ day: string; complaints: number; resolved: number }>;
+  categories: Array<{ category: string; count: number }>;
+  localities: Array<{ locality: string; count: number }>;
+  wards: Array<{ wardNumber: number | null; wardName: string | null; count: number }>;
   hotspots: Hotspot[];
 }
 

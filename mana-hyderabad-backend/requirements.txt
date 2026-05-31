@@ -6,10 +6,11 @@ SQLAlchemy==2.0.36
 alembic==1.14.0
 psycopg[binary]==3.2.3
 GeoAlchemy2==0.16.0
-python-dotenv==1.0.1
-pytest==8.3.4
-requests==2.32.3
+python-dotenv==1.2.2
+pytest==9.0.3
+requests==2.33.0
 httpx==0.28.1
 cloudinary==1.41.0
-python-multipart==0.0.20
-pillow==11.0.0
+python-multipart==0.0.27
+pillow==12.2.0
+pip-audit==2.7.3

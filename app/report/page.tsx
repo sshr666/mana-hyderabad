@@ -1,29 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import {useState} from "react";
-import {useRouter} from "next/navigation";
-import {useTranslations} from "next-intl";
-import {ArrowLeft, CheckCircle2, Loader2} from "lucide-react";
-import {analyseComplaint, submitComplaint} from "@/lib/api-client";
-import type {Complaint, ComplaintAnalysis} from "@/lib/types";
-import {useLocaleSettings} from "@/components/locale-provider";
-import {ComplaintInput} from "@/components/citizen/complaint-input";
-import {LocationPicker, type LocationValue} from "@/components/citizen/location-picker";
-import {PhotoUpload} from "@/components/citizen/photo-upload";
-import {ComplaintReview} from "@/components/citizen/complaint-review";
-import {StatusStepper} from "@/components/citizen/status-stepper";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {LanguageChangeButton} from "@/components/citizen/language-change-button";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { analyseComplaint, submitComplaint } from "@/lib/api-client";
+import type { Complaint, ComplaintAnalysis } from "@/lib/types";
+import { useLocaleSettings } from "@/components/locale-provider";
+import { ComplaintInput } from "@/components/citizen/complaint-input";
+import { LocationPicker, type LocationValue } from "@/components/citizen/location-picker";
+import { PhotoUpload } from "@/components/citizen/photo-upload";
+import { ComplaintReview } from "@/components/citizen/complaint-review";
+import { StatusStepper } from "@/components/citizen/status-stepper";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { LanguageChangeButton } from "@/components/citizen/language-change-button";
 
 type Step = "input" | "analysis" | "location" | "photo" | "review" | "submitted";
 
 export default function ReportPage() {
   const t = useTranslations();
   const router = useRouter();
-  const {locale} = useLocaleSettings();
+  const { locale } = useLocaleSettings();
   const [step, setStep] = useState<Step>("input");
   const [text, setText] = useState("");
   const [analysis, setAnalysis] = useState<ComplaintAnalysis | null>(null);
@@ -51,7 +51,11 @@ export default function ReportPage() {
       });
       setAnalysis(result);
     } catch (analysisError) {
-      setError(analysisError instanceof Error ? analysisError.message : "Could not understand the complaint. Please try again.");
+      setError(
+        analysisError instanceof Error
+          ? analysisError.message
+          : "Could not understand the complaint. Please try again."
+      );
       setStep("input");
     }
   };
@@ -83,7 +87,11 @@ export default function ReportPage() {
       setSubmitted(result);
       setStep("submitted");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not submit complaint. Please review the entered details.");
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Could not submit complaint. Please review the entered details."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -101,7 +109,9 @@ export default function ReportPage() {
 
       <header className="mb-6">
         <h1 className="text-3xl font-bold tracking-normal">{t("report.title")}</h1>
-        <p className="mt-2 text-muted-foreground">{t("report.intro")} {t("report.hint")}</p>
+        <p className="mt-2 text-muted-foreground">
+          {t("report.intro")} {t("report.hint")}
+        </p>
       </header>
 
       {error && (
@@ -125,8 +135,14 @@ export default function ReportPage() {
                 <h2 className="font-semibold">{t("report.understood")}</h2>
                 <div className="space-y-3 rounded-xl bg-secondary/50 p-4">
                   <Detail label={t("report.issue")} value={analysis.issueTitle} />
-                  <Detail label={t("report.location")} value={analysis.locationText ?? t("report.notProvided")} />
-                  <Detail label={t("report.photo")} value={photoUrl ? "Added" : t("report.notAdded")} />
+                  <Detail
+                    label={t("report.location")}
+                    value={analysis.locationText ?? t("report.notProvided")}
+                  />
+                  <Detail
+                    label={t("report.photo")}
+                    value={photoUrl ? "Added" : t("report.notAdded")}
+                  />
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => setStep("input")}>
@@ -182,7 +198,7 @@ export default function ReportPage() {
 
       {step === "review" && analysis && location && (
         <ComplaintReview
-          analysis={{...analysis, detectedLabels: labels}}
+          analysis={{ ...analysis, detectedLabels: labels }}
           originalText={text}
           location={location}
           photoUrl={photoUrl}
@@ -220,7 +236,7 @@ export default function ReportPage() {
   );
 }
 
-function Detail({label, value}: {label: string; value: string}) {
+function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-muted-foreground">{label}</span>
@@ -230,6 +246,17 @@ function Detail({label, value}: {label: string; value: string}) {
 }
 
 function inferLocality(text: string): string | null {
-  const localities = ["Kondapur", "Madhapur", "Gachibowli", "Ameerpet", "Kukatpally", "Charminar", "Jubilee Hills", "Hitech City", "Begumpet", "Secunderabad"];
+  const localities = [
+    "Kondapur",
+    "Madhapur",
+    "Gachibowli",
+    "Ameerpet",
+    "Kukatpally",
+    "Charminar",
+    "Jubilee Hills",
+    "Hitech City",
+    "Begumpet",
+    "Secunderabad"
+  ];
   return localities.find((locality) => text.toLowerCase().includes(locality.toLowerCase())) ?? null;
 }

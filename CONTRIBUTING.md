@@ -62,15 +62,15 @@ git checkout -b feature/telugu-complaint-form
 
 Recommended prefixes:
 
-| Prefix | Use case |
-|---|---|
-| `feature/` | New feature |
-| `fix/` | Bug fix |
-| `docs/` | Documentation |
-| `refactor/` | Code restructuring |
-| `test/` | Test additions |
-| `ml/` | Model or dataset changes |
-| `prompt/` | Prompt changes |
+| Prefix      | Use case                 |
+| ----------- | ------------------------ |
+| `feature/`  | New feature              |
+| `fix/`      | Bug fix                  |
+| `docs/`     | Documentation            |
+| `refactor/` | Code restructuring       |
+| `test/`     | Test additions           |
+| `ml/`       | Model or dataset changes |
+| `prompt/`   | Prompt changes           |
 
 Examples:
 
@@ -154,16 +154,16 @@ test(duplicates): add nearby complaint matching cases
 
 Suggested commit types:
 
-| Type | Meaning |
-|---|---|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation |
-| `test` | Test changes |
-| `refactor` | Internal restructuring |
-| `chore` | Maintenance |
-| `prompt` | Prompt update |
-| `ml` | Model, data, or evaluation update |
+| Type       | Meaning                           |
+| ---------- | --------------------------------- |
+| `feat`     | New feature                       |
+| `fix`      | Bug fix                           |
+| `docs`     | Documentation                     |
+| `test`     | Test changes                      |
+| `refactor` | Internal restructuring            |
+| `chore`    | Maintenance                       |
+| `prompt`   | Prompt update                     |
+| `ml`       | Model, data, or evaluation update |
 
 ---
 

@@ -1,19 +1,19 @@
 "use client";
 
-import {zodResolver} from "@hookform/resolvers/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
-import {useTranslations} from "next-intl";
-import {Home, Search} from "lucide-react";
-import {useState} from "react";
-import {useForm} from "react-hook-form";
-import {z} from "zod";
-import {getComplaint} from "@/lib/api-client";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {LanguageChangeButton} from "@/components/citizen/language-change-button";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Home, Search } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { getComplaint } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LanguageChangeButton } from "@/components/citizen/language-change-button";
 
 const schema = z.object({
   reference: z.string().min(4)
@@ -27,10 +27,10 @@ export default function TrackPage() {
   const {
     register,
     handleSubmit,
-    formState: {errors}
+    formState: { errors }
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: {reference: "HYD-SAN-0142"}
+    defaultValues: { reference: "HYD-SAN-0142" }
   });
 
   return (
@@ -53,13 +53,19 @@ export default function TrackPage() {
               try {
                 complaint = await getComplaint(reference);
               } catch (error) {
-                setLookupError(error instanceof Error ? error.message : "Could not connect to the backend. Please confirm that the FastAPI server is running.");
+                setLookupError(
+                  error instanceof Error
+                    ? error.message
+                    : "Could not connect to the backend. Please confirm that the FastAPI server is running."
+                );
                 setChecking(false);
                 return;
               }
               setChecking(false);
               if (!complaint) {
-                setLookupError("We could not find that complaint reference. Please check the ID and try again.");
+                setLookupError(
+                  "We could not find that complaint reference. Please check the ID and try again."
+                );
                 return;
               }
               router.push(`/complaints/${reference}`);
@@ -67,8 +73,14 @@ export default function TrackPage() {
           >
             <div className="space-y-2">
               <Label htmlFor="reference">{t("track.label")}</Label>
-              <Input id="reference" placeholder={t("track.placeholder")} {...register("reference")} />
-              {errors.reference && <p className="text-sm text-destructive">{t("errors.referenceRequired")}</p>}
+              <Input
+                id="reference"
+                placeholder={t("track.placeholder")}
+                {...register("reference")}
+              />
+              {errors.reference && (
+                <p className="text-sm text-destructive">{t("errors.referenceRequired")}</p>
+              )}
               {lookupError && <p className="text-sm text-destructive">{lookupError}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={checking}>

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import {useTranslations} from "next-intl";
-import {Languages} from "lucide-react";
-import {Button} from "@/components/ui/button";
+import { useTranslations } from "next-intl";
+import { Languages } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function LanguageChangeButton({className}: {className?: string}) {
+export function LanguageChangeButton({ className }: { className?: string }) {
   const t = useTranslations("common");
 
   return (

@@ -1,12 +1,12 @@
 "use client";
 
-import {useEffect, useRef, useState} from "react";
-import maplibregl, {Map, Marker} from "maplibre-gl";
-import {Crosshair, Loader2, MapPin, RotateCcw, Trash2} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {FALLBACK_MAP_ZOOM, HYDERABAD_CENTER, MAP_STYLE_URL} from "@/lib/map-config";
+import { useEffect, useRef, useState } from "react";
+import maplibregl, { Map, Marker } from "maplibre-gl";
+import { Crosshair, Loader2, MapPin, RotateCcw, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FALLBACK_MAP_ZOOM, HYDERABAD_CENTER, MAP_STYLE_URL } from "@/lib/map-config";
 
 export interface LocationValue {
   latitude: number | null;
@@ -19,9 +19,13 @@ interface LocationPickerProps {
   onConfirm: (location: LocationValue) => void;
 }
 
-const defaultLocation: LocationValue = {latitude: HYDERABAD_CENTER.latitude, longitude: HYDERABAD_CENTER.longitude, landmark: ""};
+const defaultLocation: LocationValue = {
+  latitude: HYDERABAD_CENTER.latitude,
+  longitude: HYDERABAD_CENTER.longitude,
+  landmark: ""
+};
 
-export function LocationPicker({value, onConfirm}: LocationPickerProps) {
+export function LocationPicker({ value, onConfirm }: LocationPickerProps) {
   const mapRef = useRef<Map | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -33,7 +37,10 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const start = [draft.longitude ?? HYDERABAD_CENTER.longitude, draft.latitude ?? HYDERABAD_CENTER.latitude] as [number, number];
+    const start = [
+      draft.longitude ?? HYDERABAD_CENTER.longitude,
+      draft.latitude ?? HYDERABAD_CENTER.latitude
+    ] as [number, number];
 
     let map: Map;
     try {
@@ -48,22 +55,22 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
       return;
     }
 
-    map.on("error", () => setMapError("Map tiles could not load. You can still enter a landmark manually."));
+    map.on("error", () =>
+      setMapError("Map tiles could not load. You can still enter a landmark manually.")
+    );
 
-    const marker = new maplibregl.Marker({draggable: true})
-      .setLngLat(start)
-      .addTo(map);
+    const marker = new maplibregl.Marker({ draggable: true }).setLngLat(start).addTo(map);
 
     marker.on("dragend", () => {
       const lngLat = marker.getLngLat();
-      setDraft((current) => ({...current, latitude: lngLat.lat, longitude: lngLat.lng}));
+      setDraft((current) => ({ ...current, latitude: lngLat.lat, longitude: lngLat.lng }));
     });
 
     map.on("click", (event) => {
       setUpdating(true);
-      const next = {latitude: event.lngLat.lat, longitude: event.lngLat.lng};
+      const next = { latitude: event.lngLat.lat, longitude: event.lngLat.lng };
       marker.setLngLat([next.longitude, next.latitude]);
-      setDraft((current) => ({...current, ...next}));
+      setDraft((current) => ({ ...current, ...next }));
       window.setTimeout(() => setUpdating(false), 250);
     });
 
@@ -75,20 +82,24 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
       mapRef.current = null;
       markerRef.current = null;
     };
+    // The MapLibre instance is created once and kept in refs; field changes update the marker separately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setMapLocation = (next: LocationValue) => {
     setDraft(next);
     if (next.latitude !== null && next.longitude !== null) {
       markerRef.current?.setLngLat([next.longitude, next.latitude]);
-      mapRef.current?.flyTo({center: [next.longitude, next.latitude], zoom: 14});
+      mapRef.current?.flyTo({ center: [next.longitude, next.latitude], zoom: 14 });
     }
   };
 
   const useCurrentLocation = () => {
     setLocationMessage(null);
     if (!navigator.geolocation) {
-      setLocationMessage("Current location is not available in this browser. Please enter a landmark.");
+      setLocationMessage(
+        "Current location is not available in this browser. Please enter a landmark."
+      );
       return;
     }
     setDetecting(true);
@@ -104,19 +115,25 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
       (error) => {
         setDetecting(false);
         if (error.code === error.PERMISSION_DENIED) {
-          setLocationMessage("Location permission was denied. You can still choose a point on the map or enter a landmark manually.");
+          setLocationMessage(
+            "Location permission was denied. You can still choose a point on the map or enter a landmark manually."
+          );
         } else if (error.code === error.TIMEOUT) {
-          setLocationMessage("Location detection timed out. Please try again or choose a point on the map.");
+          setLocationMessage(
+            "Location detection timed out. Please try again or choose a point on the map."
+          );
         } else {
-          setLocationMessage("Could not detect your location. Move the pin manually or enter a landmark.");
+          setLocationMessage(
+            "Could not detect your location. Move the pin manually or enter a landmark."
+          );
         }
       },
-      {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000}
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
   const clearLocation = () => {
-    setDraft({latitude: null, longitude: null, landmark: ""});
+    setDraft({ latitude: null, longitude: null, landmark: "" });
     setLocationMessage("Location cleared. Enter a landmark or choose a point on the map.");
   };
 
@@ -124,14 +141,27 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
     <div className="space-y-4">
       <div className="grid gap-2 sm:grid-cols-3">
         <Button type="button" variant="outline" onClick={useCurrentLocation} disabled={detecting}>
-          {detecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
+          {detecting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Crosshair className="h-4 w-4" />
+          )}
           {detecting ? "Detecting..." : "Use My Current Location"}
         </Button>
         <Button type="button" variant="outline" onClick={() => setMapLocation(defaultLocation)}>
           <MapPin className="h-4 w-4" />
           Choose on Map
         </Button>
-        <Button type="button" variant="outline" onClick={() => setDraft((current) => ({...current, landmark: current.landmark || "Near Gachibowli signal"}))}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            setDraft((current) => ({
+              ...current,
+              landmark: current.landmark || "Near Gachibowli signal"
+            }))
+          }
+        >
           Enter Landmark Manually
         </Button>
       </div>
@@ -148,13 +178,21 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
           id="landmark"
           value={draft.landmark}
           placeholder="Near Kondapur RTO office"
-          onChange={(event) => setDraft((current) => ({...current, landmark: event.target.value}))}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, landmark: event.target.value }))
+          }
         />
       </div>
 
       <div className="rounded-lg border bg-secondary/40 p-3 text-sm">
-        <p>Latitude: <span className="font-medium">{draft.latitude?.toFixed(6) ?? "Not selected"}</span></p>
-        <p>Longitude: <span className="font-medium">{draft.longitude?.toFixed(6) ?? "Not selected"}</span></p>
+        <p>
+          Latitude:{" "}
+          <span className="font-medium">{draft.latitude?.toFixed(6) ?? "Not selected"}</span>
+        </p>
+        <p>
+          Longitude:{" "}
+          <span className="font-medium">{draft.longitude?.toFixed(6) ?? "Not selected"}</span>
+        </p>
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
@@ -162,7 +200,7 @@ export function LocationPicker({value, onConfirm}: LocationPickerProps) {
           type="button"
           className="w-full"
           disabled={!draft.landmark.trim() && (draft.latitude === null || draft.longitude === null)}
-          onClick={() => onConfirm({...draft, landmark: draft.landmark.trim()})}
+          onClick={() => onConfirm({ ...draft, landmark: draft.landmark.trim() })}
         >
           Confirm Location
         </Button>

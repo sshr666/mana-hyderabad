@@ -1,6 +1,6 @@
-import {getRequestConfig} from "next-intl/server";
-import {cookies} from "next/headers";
-import type {SupportedLanguage} from "@/lib/types";
+import { getRequestConfig } from "next-intl/server";
+import { cookies } from "next/headers";
+import type { SupportedLanguage } from "@/lib/types";
 
 const supported: SupportedLanguage[] = ["en", "te", "hi", "ur"];
 

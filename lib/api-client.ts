@@ -1,4 +1,4 @@
-import {analyticsSummary, complaints as mockComplaints} from "@/lib/mock-data";
+import { analyticsSummary, complaints as mockComplaints } from "@/lib/mock-data";
 import type {
   AdminAnalyticsResponse,
   AdminComplaintListResponse,
@@ -23,9 +23,11 @@ import type {
   ComplaintUpdatePayload
 } from "@/lib/types";
 
-
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, "");
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(
+  /\/$/,
+  ""
+);
 const ENABLE_MOCK_FALLBACK = process.env.NEXT_PUBLIC_ENABLE_MOCK_FALLBACK === "true";
 
 export class ApiClientError extends Error {
@@ -83,43 +85,59 @@ export function getApiMode(): ApiMode {
   };
 }
 
-export async function healthCheck(signal?: AbortSignal): Promise<{status: string}> {
-  return requestJson<{status: string}>("/api/health", {signal});
+export async function healthCheck(signal?: AbortSignal): Promise<{ status: string }> {
+  return requestJson<{ status: string }>("/api/health", { signal });
 }
 
-export async function analyseComplaint(request: ComplaintAnalysisRequest, signal?: AbortSignal): Promise<ComplaintAnalysisResponse> {
+export async function analyseComplaint(
+  request: ComplaintAnalysisRequest,
+  signal?: AbortSignal
+): Promise<ComplaintAnalysisResponse> {
   return withMockFallback(
-    () => requestJson<Partial<ComplaintAnalysisResponse>>("/api/complaints/analyse", {method: "POST", body: request, signal}).then((response) => ({
-      normalizedEnglishText: response.normalizedEnglishText ?? request.text,
-      detectedLanguage: response.detectedLanguage ?? request.language,
-      category: response.category ?? "OTHER",
-      subcategory: response.subcategory ?? "MISCELLANEOUS",
-      department: response.department ?? departmentForCategory(response.category ?? "OTHER"),
-      priority: response.priority ?? "LOW",
-      locationText: response.locationText ?? request.landmark ?? null,
-      missingFields: response.missingFields ?? inferMissingFields(request.latitude, request.longitude),
-      followUpQuestion: response.followUpQuestion ?? null,
-      citizenReply: response.citizenReply ?? response.followUpQuestion ?? null,
-      reasoningSummary: response.reasoningSummary ?? `${titleFromParts(response.subcategory, response.category)} reported.`,
-      requiresHumanVerification: response.requiresHumanVerification ?? true,
-      analysisSource: response.analysisSource ?? "FALLBACK_RULES",
-      issueTitle: response.issueTitle ?? titleFromParts(response.subcategory, response.category),
-      detectedLabels: response.detectedLabels ?? []
-    })),
+    () =>
+      requestJson<Partial<ComplaintAnalysisResponse>>("/api/complaints/analyse", {
+        method: "POST",
+        body: request,
+        signal
+      }).then((response) => ({
+        normalizedEnglishText: response.normalizedEnglishText ?? request.text,
+        detectedLanguage: response.detectedLanguage ?? request.language,
+        category: response.category ?? "OTHER",
+        subcategory: response.subcategory ?? "MISCELLANEOUS",
+        department: response.department ?? departmentForCategory(response.category ?? "OTHER"),
+        priority: response.priority ?? "LOW",
+        locationText: response.locationText ?? request.landmark ?? null,
+        missingFields:
+          response.missingFields ?? inferMissingFields(request.latitude, request.longitude),
+        followUpQuestion: response.followUpQuestion ?? null,
+        citizenReply: response.citizenReply ?? response.followUpQuestion ?? null,
+        reasoningSummary:
+          response.reasoningSummary ??
+          `${titleFromParts(response.subcategory, response.category)} reported.`,
+        requiresHumanVerification: response.requiresHumanVerification ?? true,
+        analysisSource: response.analysisSource ?? "FALLBACK_RULES",
+        issueTitle: response.issueTitle ?? titleFromParts(response.subcategory, response.category),
+        detectedLabels: response.detectedLabels ?? []
+      })),
     () => mockAnalyseComplaint(request)
   );
 }
 
-export async function submitComplaint(payload: ComplaintCreatePayload, signal?: AbortSignal): Promise<Complaint> {
+export async function submitComplaint(
+  payload: ComplaintCreatePayload,
+  signal?: AbortSignal
+): Promise<Complaint> {
   return withMockFallback(
     async () => {
-      const response = await requestJson<BackendComplaint | {referenceId: string; status: ComplaintStatus; createdAt: string}>(
-        "/api/complaints",
-        {method: "POST", body: serializeComplaintPayload(payload), signal}
-      );
+      const response = await requestJson<
+        BackendComplaint | { referenceId: string; status: ComplaintStatus; createdAt: string }
+      >("/api/complaints", { method: "POST", body: serializeComplaintPayload(payload), signal });
       if ("originalText" in response) return mapBackendComplaint(response);
       const complaint = await getComplaint(response.referenceId, signal);
-      if (!complaint) throw new ApiClientError(`Complaint ${response.referenceId} was created but could not be retrieved.`);
+      if (!complaint)
+        throw new ApiClientError(
+          `Complaint ${response.referenceId} was created but could not be retrieved.`
+        );
       return complaint;
     },
     () => ({
@@ -149,17 +167,29 @@ export async function submitComplaint(payload: ComplaintCreatePayload, signal?: 
   );
 }
 
-export async function getComplaint(referenceId: string, signal?: AbortSignal): Promise<Complaint | null> {
+export async function getComplaint(
+  referenceId: string,
+  signal?: AbortSignal
+): Promise<Complaint | null> {
   return withMockFallback(
     async () => {
-      const response = await fetchJson<BackendComplaint>(`/api/complaints/${encodeURIComponent(referenceId)}`, {signal});
+      const response = await fetchJson<BackendComplaint>(
+        `/api/complaints/${encodeURIComponent(referenceId)}`,
+        { signal }
+      );
       return response ? mapBackendComplaint(response) : null;
     },
-    () => mockComplaints.find((complaint) => complaint.id.toLowerCase() === referenceId.toLowerCase()) ?? null
+    () =>
+      mockComplaints.find(
+        (complaint) => complaint.id.toLowerCase() === referenceId.toLowerCase()
+      ) ?? null
   );
 }
 
-export async function getAdminComplaints(query: AdminComplaintQuery = {}, signal?: AbortSignal): Promise<AdminComplaintListResponse> {
+export async function getAdminComplaints(
+  query: AdminComplaintQuery = {},
+  signal?: AbortSignal
+): Promise<AdminComplaintListResponse> {
   return withMockFallback(
     async () => {
       const response = await requestJson<BackendAdminList>("/api/admin/complaints", {
@@ -187,67 +217,86 @@ export async function getAdminComplaints(query: AdminComplaintQuery = {}, signal
       const page = query.page ?? 1;
       const pageSize = query.pageSize ?? 20;
       const filtered = filterMockComplaints(query);
-      return {items: filtered.slice((page - 1) * pageSize, page * pageSize), total: filtered.length, page, pageSize};
+      return {
+        items: filtered.slice((page - 1) * pageSize, page * pageSize),
+        total: filtered.length,
+        page,
+        pageSize
+      };
     }
   );
 }
 
-export async function updateComplaint(referenceId: string, payload: ComplaintUpdatePayload, signal?: AbortSignal): Promise<Complaint | null> {
+export async function updateComplaint(
+  referenceId: string,
+  payload: ComplaintUpdatePayload,
+  signal?: AbortSignal
+): Promise<Complaint | null> {
   return withMockFallback(
     async () => {
-      const response = await fetchJson<BackendComplaint>(`/api/admin/complaints/${encodeURIComponent(referenceId)}`, {
-        method: "PATCH",
-        body: payload,
-        signal
-      });
+      const response = await fetchJson<BackendComplaint>(
+        `/api/admin/complaints/${encodeURIComponent(referenceId)}`,
+        {
+          method: "PATCH",
+          body: payload,
+          signal
+        }
+      );
       return response ? mapBackendComplaint(response) : null;
     },
     () => {
       const complaint = mockComplaints.find((item) => item.id === referenceId);
       if (!complaint) return null;
-      return {...complaint, ...payload, updatedAt: new Date().toISOString()};
+      return { ...complaint, ...payload, updatedAt: new Date().toISOString() };
     }
   );
 }
 
 export async function getAdminAnalytics(signal?: AbortSignal): Promise<AnalyticsSummary> {
   return withMockFallback(
-    async () => mapAnalytics(await requestJson<AdminAnalyticsResponse>("/api/admin/analytics", {signal})),
-    () => ({...analyticsSummary, localities: [], wards: [], hotspots: []})
+    async () =>
+      mapAnalytics(await requestJson<AdminAnalyticsResponse>("/api/admin/analytics", { signal })),
+    () => ({ ...analyticsSummary, localities: [], wards: [], hotspots: [] })
   );
 }
 
 export const getAnalytics = getAdminAnalytics;
 
-export async function getAdminMapPoints(filters: MapPointFilters = {}, signal?: AbortSignal): Promise<MapPoint[]> {
+export async function getAdminMapPoints(
+  filters: MapPointFilters = {},
+  signal?: AbortSignal
+): Promise<MapPoint[]> {
   return withMockFallback(
-    () => requestJson<MapPoint[]>("/api/admin/map-points", {
-      query: {
-        category: filters.category,
-        priority: filters.priority,
-        status: filters.status,
-        locality: filters.locality
-      },
-      signal
-    }),
-    () => mockComplaints
-      .filter((complaint) =>
-        (!filters.category || complaint.category === filters.category)
-        && (!filters.priority || complaint.priority === filters.priority)
-        && (!filters.status || complaint.status === filters.status)
-        && (!filters.locality || complaint.locality === filters.locality)
-      )
-      .map((complaint) => ({
-        referenceId: complaint.id,
-        category: complaint.category,
-        priority: complaint.priority,
-        status: complaint.status,
-        latitude: complaint.latitude,
-        longitude: complaint.longitude,
-        landmark: complaint.landmark,
-        locality: complaint.locality ?? null,
-        photoUrl: complaint.photoUrl ?? null
-      }))
+    () =>
+      requestJson<MapPoint[]>("/api/admin/map-points", {
+        query: {
+          category: filters.category,
+          priority: filters.priority,
+          status: filters.status,
+          locality: filters.locality
+        },
+        signal
+      }),
+    () =>
+      mockComplaints
+        .filter(
+          (complaint) =>
+            (!filters.category || complaint.category === filters.category) &&
+            (!filters.priority || complaint.priority === filters.priority) &&
+            (!filters.status || complaint.status === filters.status) &&
+            (!filters.locality || complaint.locality === filters.locality)
+        )
+        .map((complaint) => ({
+          referenceId: complaint.id,
+          category: complaint.category,
+          priority: complaint.priority,
+          status: complaint.status,
+          latitude: complaint.latitude,
+          longitude: complaint.longitude,
+          landmark: complaint.landmark,
+          locality: complaint.locality ?? null,
+          photoUrl: complaint.photoUrl ?? null
+        }))
   );
 }
 
@@ -257,41 +306,51 @@ export async function getMapPoints(signal?: AbortSignal): Promise<Complaint[]> {
 }
 
 export async function getNearbyComplaints(
-  params: {latitude: number; longitude: number; radiusMeters?: number; category?: ComplaintCategory},
+  params: {
+    latitude: number;
+    longitude: number;
+    radiusMeters?: number;
+    category?: ComplaintCategory;
+  },
   signal?: AbortSignal
 ): Promise<NearbyComplaint[]> {
   return withMockFallback(
-    () => requestJson<NearbyComplaint[]>("/api/admin/nearby-complaints", {
-      query: {
-        latitude: params.latitude,
-        longitude: params.longitude,
-        radius_meters: params.radiusMeters ?? 200,
-        category: params.category
-      },
-      signal
-    }),
+    () =>
+      requestJson<NearbyComplaint[]>("/api/admin/nearby-complaints", {
+        query: {
+          latitude: params.latitude,
+          longitude: params.longitude,
+          radius_meters: params.radiusMeters ?? 200,
+          category: params.category
+        },
+        signal
+      }),
     () => []
   );
 }
 
 export async function getHotspots(
-  params: {radiusMeters?: number; minComplaints?: number; category?: ComplaintCategory} = {},
+  params: { radiusMeters?: number; minComplaints?: number; category?: ComplaintCategory } = {},
   signal?: AbortSignal
 ): Promise<Hotspot[]> {
   return withMockFallback(
-    () => requestJson<Hotspot[]>("/api/admin/hotspots", {
-      query: {
-        radius_meters: params.radiusMeters ?? 300,
-        min_complaints: params.minComplaints ?? 3,
-        category: params.category
-      },
-      signal
-    }),
+    () =>
+      requestJson<Hotspot[]>("/api/admin/hotspots", {
+        query: {
+          radius_meters: params.radiusMeters ?? 300,
+          min_complaints: params.minComplaints ?? 3,
+          category: params.category
+        },
+        signal
+      }),
     () => []
   );
 }
 
-export async function uploadComplaintImage(file: File, signal?: AbortSignal): Promise<UploadedImageResponse> {
+export async function uploadComplaintImage(
+  file: File,
+  signal?: AbortSignal
+): Promise<UploadedImageResponse> {
   if (!file || file.size === 0) throw new ApiClientError("Uploaded image is empty.");
   const formData = new FormData();
   formData.append("file", file);
@@ -305,7 +364,8 @@ export async function uploadComplaintImage(file: File, signal?: AbortSignal): Pr
       });
       const text = await response.text();
       const data = text ? parseJson(text) : null;
-      if (!response.ok) throw new ApiClientError(extractErrorMessage(data, response.status), response.status);
+      if (!response.ok)
+        throw new ApiClientError(extractErrorMessage(data, response.status), response.status);
       if (!data || typeof data !== "object" || !("photoUrl" in data)) {
         throw new ApiClientError("Upload response did not include an image URL.");
       }
@@ -319,17 +379,25 @@ export async function uploadComplaintImage(file: File, signal?: AbortSignal): Pr
   );
 }
 
-export async function deleteTemporaryImage(publicId: string, signal?: AbortSignal): Promise<{publicId: string; deleted: boolean}> {
-  return requestJson<{publicId: string; deleted: boolean}>("/api/uploads/images", {
+export async function deleteTemporaryImage(
+  publicId: string,
+  signal?: AbortSignal
+): Promise<{ publicId: string; deleted: boolean }> {
+  return requestJson<{ publicId: string; deleted: boolean }>("/api/uploads/images", {
     method: "DELETE",
-    body: {publicId},
+    body: { publicId },
     signal
   });
 }
 
 async function requestJson<T>(
   path: string,
-  options: {method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+  options: {
+    method?: "GET" | "POST" | "PATCH" | "DELETE";
+    body?: unknown;
+    query?: QueryParams;
+    signal?: AbortSignal;
+  } = {}
 ): Promise<T> {
   const response = await fetchJson<T>(path, options);
   if (response === null) throw new ApiClientError("Backend returned an empty response.");
@@ -338,21 +406,28 @@ async function requestJson<T>(
 
 async function fetchJson<T>(
   path: string,
-  options: {method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+  options: {
+    method?: "GET" | "POST" | "PATCH" | "DELETE";
+    body?: unknown;
+    query?: QueryParams;
+    signal?: AbortSignal;
+  } = {}
 ): Promise<T | null> {
   const url = buildUrl(path, options.query);
   let response: Response;
   try {
     response = await fetch(url, {
       method: options.method ?? "GET",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: options.signal,
       cache: "no-store"
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    throw new ApiClientError("Could not connect to the backend. Please confirm that the FastAPI server is running.");
+    throw new ApiClientError(
+      "Could not connect to the backend. Please confirm that the FastAPI server is running."
+    );
   }
 
   if (response.status === 404) return null;
@@ -367,7 +442,8 @@ async function fetchJson<T>(
 function buildUrl(path: string, query?: QueryParams): string {
   const url = new URL(path, API_BASE_URL);
   Object.entries(query ?? {}).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
+    if (value !== undefined && value !== null && value !== "")
+      url.searchParams.set(key, String(value));
   });
   return url.toString();
 }
@@ -382,19 +458,26 @@ function parseJson(text: string): unknown {
 
 function extractErrorMessage(data: unknown, status: number): string {
   if (typeof data === "object" && data !== null && "detail" in data) {
-    const detail = (data as {detail: unknown}).detail;
+    const detail = (data as { detail: unknown }).detail;
     if (typeof detail === "string") return detail;
-    if (Array.isArray(detail)) return detail.map((item) => {
-      if (typeof item === "object" && item !== null && "msg" in item) return String((item as {msg: unknown}).msg);
-      return String(item);
-    }).join("; ");
+    if (Array.isArray(detail))
+      return detail
+        .map((item) => {
+          if (typeof item === "object" && item !== null && "msg" in item)
+            return String((item as { msg: unknown }).msg);
+          return String(item);
+        })
+        .join("; ");
   }
   if (status === 422) return "Could not submit complaint. Please review the entered details.";
   if (status >= 500) return "Backend server error. Please try again shortly.";
   return `Backend request failed with status ${status}.`;
 }
 
-async function withMockFallback<T>(live: () => Promise<T>, fallback: () => T | Promise<T>): Promise<T> {
+async function withMockFallback<T>(
+  live: () => Promise<T>,
+  fallback: () => T | Promise<T>
+): Promise<T> {
   try {
     return await live();
   } catch (error) {
@@ -474,8 +557,15 @@ function mapAnalytics(response: AdminAnalyticsResponse): AnalyticsSummary {
     highPriorityIssues: response.highPriorityIssues,
     resolvedToday: response.resolvedToday,
     possibleDuplicates: response.possibleDuplicates ?? 0,
-    trend: response.complaintsByDate.map((item) => ({day: item.date, complaints: item.count, resolved: 0})),
-    categories: response.complaintsByCategory.map((item) => ({category: String(item.category).replaceAll("_", " "), count: item.count})),
+    trend: response.complaintsByDate.map((item) => ({
+      day: item.date,
+      complaints: item.count,
+      resolved: 0
+    })),
+    categories: response.complaintsByCategory.map((item) => ({
+      category: String(item.category).replaceAll("_", " "),
+      count: item.count
+    })),
     localities: response.complaintsByLocality ?? [],
     wards: response.complaintsByWard ?? [],
     hotspots: response.hotspots ?? []
@@ -485,23 +575,37 @@ function mapAnalytics(response: AdminAnalyticsResponse): AnalyticsSummary {
 function filterMockComplaints(query: AdminComplaintQuery): Complaint[] {
   return mockComplaints.filter((complaint) => {
     const search = query.search?.toLowerCase();
-    const matchesSearch = !search || [complaint.id, complaint.landmark, complaint.subcategory, complaint.normalizedEnglishText]
-      .join(" ")
-      .toLowerCase()
-      .includes(search);
-    return matchesSearch
-      && (!query.category || complaint.category === query.category)
-      && (!query.priority || complaint.priority === query.priority)
-      && (!query.status || complaint.status === query.status)
-      && (!query.locality || complaint.landmark.toLowerCase().includes(query.locality.toLowerCase()))
-      && (!query.language || complaint.originalLanguage === query.language);
+    const matchesSearch =
+      !search ||
+      [complaint.id, complaint.landmark, complaint.subcategory, complaint.normalizedEnglishText]
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    return (
+      matchesSearch &&
+      (!query.category || complaint.category === query.category) &&
+      (!query.priority || complaint.priority === query.priority) &&
+      (!query.status || complaint.status === query.status) &&
+      (!query.locality ||
+        complaint.landmark.toLowerCase().includes(query.locality.toLowerCase())) &&
+      (!query.language || complaint.originalLanguage === query.language)
+    );
   });
 }
 
 function mockAnalyseComplaint(request: ComplaintAnalysisRequest): ComplaintAnalysisResponse {
   const lower = request.text.toLowerCase();
-  const category: ComplaintCategory = lower.includes("waterlogging") ? "WATERLOGGING" : lower.includes("pothole") ? "ROADS" : "OTHER";
-  const subcategory = category === "WATERLOGGING" ? "ROAD_WATERLOGGING" : category === "ROADS" ? "POTHOLE" : "MISCELLANEOUS";
+  const category: ComplaintCategory = lower.includes("waterlogging")
+    ? "WATERLOGGING"
+    : lower.includes("pothole")
+      ? "ROADS"
+      : "OTHER";
+  const subcategory =
+    category === "WATERLOGGING"
+      ? "ROAD_WATERLOGGING"
+      : category === "ROADS"
+        ? "POTHOLE"
+        : "MISCELLANEOUS";
   return {
     normalizedEnglishText: request.text,
     detectedLanguage: request.language,
@@ -521,7 +625,10 @@ function mockAnalyseComplaint(request: ComplaintAnalysisRequest): ComplaintAnaly
   };
 }
 
-function inferMissingFields(latitude: number | null, longitude: number | null): Array<"latitude" | "longitude"> {
+function inferMissingFields(
+  latitude: number | null,
+  longitude: number | null
+): Array<"latitude" | "longitude"> {
   const fields: Array<"latitude" | "longitude"> = [];
   if (latitude === null) fields.push("latitude");
   if (longitude === null) fields.push("longitude");

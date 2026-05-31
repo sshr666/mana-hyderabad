@@ -1,10 +1,20 @@
 "use client";
 
-import {Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
-import type {AnalyticsSummary} from "@/lib/types";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
+import type { AnalyticsSummary } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function DashboardCharts({analytics}: {analytics: AnalyticsSummary}) {
+export function DashboardCharts({ analytics }: { analytics: AnalyticsSummary }) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <Card>
@@ -54,5 +64,9 @@ export function DashboardCharts({analytics}: {analytics: AnalyticsSummary}) {
 }
 
 function EmptyChart() {
-  return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No complaint data is available yet.</div>;
+  return (
+    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      No complaint data is available yet.
+    </div>
+  );
 }

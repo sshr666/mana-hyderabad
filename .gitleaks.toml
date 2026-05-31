@@ -1,0 +1,8 @@
+title = "Mana Hyderabad secret scanning"
+
+[allowlist]
+description = "Allow documented placeholder values only"
+regexes = [
+  '''postgresql\+psycopg://postgres:postgres@localhost:5432/mana_hyderabad''',
+  '''NEXT_PUBLIC_API_BASE_URL=http://127\.0\.0\.1:8000'''
+]

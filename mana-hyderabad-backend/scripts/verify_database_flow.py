@@ -65,7 +65,7 @@ def main() -> int:
     analytics = request("GET", "/api/admin/analytics")
     print("9. Analytics keys:", sorted(analytics.keys()))
     return 0
-
+# todo : fix
 
 if __name__ == "__main__":
     try:

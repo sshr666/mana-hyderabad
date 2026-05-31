@@ -15,8 +15,8 @@ def get_nearby_complaints(
     radius_meters: int = 200,
     category: ComplaintCategory | None = None,
 ) -> list[NearbyComplaintResponse]:
-    if radius_meters < 1 or radius_meters > 10_000:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "radius_meters must be between 1 and 10000.")
+    if radius_meters < 1 or radius_meters > 5_000:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "radius_meters must be between 1 and 5000.")
     try:
         rows = complaint_repository.get_nearby_complaints(
             db,

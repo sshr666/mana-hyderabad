@@ -61,8 +61,14 @@ def get_admin_analytics(db: Session = Depends(get_db)) -> dict[str, object]:
 
 
 @router.get("/map-points", response_model=list[AdminMapPoint])
-def get_admin_map_points(db: Session = Depends(get_db)) -> list[AdminMapPoint]:
-    points = map_points(db)
+def get_admin_map_points(
+    category: ComplaintCategory | None = None,
+    priority: ComplaintPriority | None = None,
+    status: ComplaintStatus | None = Query(default=None, alias="status"),
+    locality: str | None = None,
+    db: Session = Depends(get_db),
+) -> list[AdminMapPoint]:
+    points = map_points(db, category=category, priority=priority, status_filter=status, locality=locality)
     return [
         AdminMapPoint(
             referenceId=complaint.reference_id,
@@ -73,6 +79,7 @@ def get_admin_map_points(db: Session = Depends(get_db)) -> list[AdminMapPoint]:
             longitude=complaint.longitude,
             landmark=complaint.landmark,
             locality=complaint.locality,
+            photoUrl=complaint.photo_url,
         )
         for complaint in points
         if complaint.latitude is not None and complaint.longitude is not None
@@ -83,7 +90,7 @@ def get_admin_map_points(db: Session = Depends(get_db)) -> list[AdminMapPoint]:
 def get_admin_nearby_complaints(
     latitude: float = Query(ge=-90, le=90),
     longitude: float = Query(ge=-180, le=180),
-    radius_meters: int = Query(default=200, ge=1, le=10_000),
+    radius_meters: int = Query(default=200, ge=1, le=5_000),
     category: ComplaintCategory | None = None,
     db: Session = Depends(get_db),
 ) -> list[NearbyComplaintResponse]:

@@ -118,14 +118,34 @@ def complaints_by_date(db: Session) -> list[dict[str, Any]]:
     return [{"date": row[0].isoformat(), "count": row[1]} for row in rows]
 
 
-def get_map_points(db: Session) -> list[Complaint]:
-    return list(
-        db.scalars(
-            select(Complaint)
-            .where(Complaint.latitude.is_not(None), Complaint.longitude.is_not(None), Complaint.location.is_not(None))
-            .order_by(Complaint.created_at.desc())
-        ).all()
+def get_map_points(
+    db: Session,
+    *,
+    category: ComplaintCategory | None = None,
+    priority: ComplaintPriority | None = None,
+    status: ComplaintStatus | None = None,
+    locality: str | None = None,
+) -> list[Complaint]:
+    stmt = (
+        select(Complaint)
+        .where(
+            Complaint.latitude.is_not(None),
+            Complaint.longitude.is_not(None),
+            Complaint.location.is_not(None),
+            Complaint.latitude.between(-90, 90),
+            Complaint.longitude.between(-180, 180),
+        )
+        .order_by(Complaint.created_at.desc())
     )
+    if category:
+        stmt = stmt.where(Complaint.category == category)
+    if priority:
+        stmt = stmt.where(Complaint.priority == priority)
+    if status:
+        stmt = stmt.where(Complaint.status == status)
+    if locality:
+        stmt = stmt.where(Complaint.locality.ilike(f"%{locality}%"))
+    return list(db.scalars(stmt).all())
 
 
 def get_nearby_complaints(

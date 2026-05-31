@@ -15,6 +15,7 @@ import type {
   ComplaintStatus,
   Hotspot,
   MapPoint,
+  MapPointFilters,
   NearbyComplaint,
   UploadedImageResponse,
   SupportedLanguage,
@@ -217,24 +218,40 @@ export async function getAdminAnalytics(signal?: AbortSignal): Promise<Analytics
 
 export const getAnalytics = getAdminAnalytics;
 
-export async function getAdminMapPoints(signal?: AbortSignal): Promise<MapPoint[]> {
+export async function getAdminMapPoints(filters: MapPointFilters = {}, signal?: AbortSignal): Promise<MapPoint[]> {
   return withMockFallback(
-    () => requestJson<MapPoint[]>("/api/admin/map-points", {signal}),
-    () => mockComplaints.map((complaint) => ({
-      referenceId: complaint.id,
-      category: complaint.category,
-      priority: complaint.priority,
-      status: complaint.status,
-      latitude: complaint.latitude,
-      longitude: complaint.longitude,
-      landmark: complaint.landmark,
-      locality: complaint.locality ?? null
-    }))
+    () => requestJson<MapPoint[]>("/api/admin/map-points", {
+      query: {
+        category: filters.category,
+        priority: filters.priority,
+        status: filters.status,
+        locality: filters.locality
+      },
+      signal
+    }),
+    () => mockComplaints
+      .filter((complaint) =>
+        (!filters.category || complaint.category === filters.category)
+        && (!filters.priority || complaint.priority === filters.priority)
+        && (!filters.status || complaint.status === filters.status)
+        && (!filters.locality || complaint.locality === filters.locality)
+      )
+      .map((complaint) => ({
+        referenceId: complaint.id,
+        category: complaint.category,
+        priority: complaint.priority,
+        status: complaint.status,
+        latitude: complaint.latitude,
+        longitude: complaint.longitude,
+        landmark: complaint.landmark,
+        locality: complaint.locality ?? null,
+        photoUrl: complaint.photoUrl ?? null
+      }))
   );
 }
 
 export async function getMapPoints(signal?: AbortSignal): Promise<Complaint[]> {
-  const points = await getAdminMapPoints(signal);
+  const points = await getAdminMapPoints({}, signal);
   return points.map(mapPointToComplaint);
 }
 
@@ -433,6 +450,7 @@ function mapPointToComplaint(point: MapPoint): Complaint {
     priority: point.priority,
     status: point.status,
     department: departmentForCategory(point.category),
+    photoUrl: point.photoUrl ?? undefined,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };

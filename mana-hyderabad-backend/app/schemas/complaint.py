@@ -161,6 +161,7 @@ class AdminMapPoint(BaseModel):
     longitude: float
     landmark: str | None
     locality: str | None
+    photo_url: str | None = Field(default=None, alias="photoUrl")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True, use_enum_values=True)
 

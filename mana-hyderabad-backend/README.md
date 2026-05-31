@@ -95,6 +95,43 @@ POST   /api/uploads/images
 DELETE /api/uploads/images
 ```
 
+## Map Setup
+
+From the frontend root, configure the MapLibre style URL:
+
+```env
+NEXT_PUBLIC_MAP_STYLE_URL=https://demotiles.maplibre.org/style.json
+```
+
+The default development style is suitable for local demos. Add a production tile provider before public deployment if required by your usage limits.
+
+## Citizen Location Features
+
+- Use current location only after the citizen clicks the button.
+- Choose a point on the map.
+- Drag the marker to refine coordinates.
+- Enter a landmark manually at all times.
+- Submit landmark-only complaints when GPS is unavailable.
+- Permission denial and timeout states show friendly fallback guidance.
+
+## Admin Map Features
+
+- Live complaint markers from `/api/admin/map-points`.
+- MapLibre GeoJSON source with marker clustering.
+- Category, priority, and status filters.
+- Reset and refresh controls.
+- Hotspot overlay from `/api/admin/hotspots`.
+- Optional heatmap view using live complaint points.
+- Fallback complaint list when map data is unavailable.
+
+## Future Geospatial Layers
+
+TODO: Add GHMC ward boundary GeoJSON for point-in-polygon ward assignment.
+
+TODO: Add recurring-hotspot fields such as `firstReportedAt`, `latestReportedAt`, `repeatedComplaintCount`, `averageResolutionTime`, and `recurrenceWindowDays`.
+
+TODO: Add drainage risk-zone overlays using flood-prone areas, nala boundaries, rainfall layers, and complaint density.
+
 ## Cloudinary Setup
 
 1. Create a Cloudinary account.
@@ -140,6 +177,12 @@ Hotspots:
 
 ```bash
 curl "http://127.0.0.1:8000/api/admin/hotspots?radius_meters=300&min_complaints=3"
+```
+
+Map points with filters:
+
+```bash
+curl "http://127.0.0.1:8000/api/admin/map-points?category=SANITATION&priority=HIGH"
 ```
 
 Upload image:
@@ -196,6 +239,7 @@ Then run:
 
 ```bash
 python scripts/verify_database_flow.py
+python scripts/verify_geospatial_flow.py
 python scripts/verify_upload_flow.py
 ```
 

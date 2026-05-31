@@ -141,8 +141,21 @@ def generate_reference_id(db: Session, category: ComplaintCategory) -> str:
     return f"HYD-{prefix}-{suffix:04d}"
 
 
-def map_points(db: Session) -> list[Complaint]:
-    return complaint_repository.get_map_points(db)
+def map_points(
+    db: Session,
+    *,
+    category: ComplaintCategory | None = None,
+    priority=None,
+    status_filter=None,
+    locality: str | None = None,
+) -> list[Complaint]:
+    return complaint_repository.get_map_points(
+        db,
+        category=category,
+        priority=priority,
+        status=status_filter,
+        locality=locality,
+    )
 
 
 def analytics(db: Session) -> dict[str, object]:

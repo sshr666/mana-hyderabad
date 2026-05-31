@@ -150,6 +150,13 @@ export interface AdminComplaintQuery {
   pageSize?: number;
 }
 
+export interface MapPointFilters {
+  category?: ComplaintCategory;
+  priority?: ComplaintPriority;
+  status?: ComplaintStatus;
+  locality?: string;
+}
+
 export interface MapPoint {
   referenceId: string;
   category: ComplaintCategory;
@@ -159,6 +166,7 @@ export interface MapPoint {
   longitude: number;
   landmark: string | null;
   locality: string | null;
+  photoUrl?: string | null;
 }
 
 export interface NearbyComplaint extends MapPoint {

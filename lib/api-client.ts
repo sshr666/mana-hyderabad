@@ -1,41 +1,65 @@
-import {analyticsSummary, complaints} from "@/lib/mock-data";
+import {analyticsSummary, complaints as mockComplaints} from "@/lib/mock-data";
 import type {
+  AdminAnalyticsResponse,
+  AdminComplaintListResponse,
+  AdminComplaintQuery,
+  AnalysisSource,
   AnalyticsSummary,
+  ApiMode,
   Complaint,
+  ComplaintAnalysisResponse,
   ComplaintCategory,
-  ComplaintAnalysis,
+  ComplaintCreatePayload,
+  ComplaintDepartment,
   ComplaintPriority,
   ComplaintStatus,
-  SupportedLanguage
+  Hotspot,
+  MapPoint,
+  NearbyComplaint,
+  SupportedLanguage,
+  ComplaintAnalysisRequest,
+  ComplaintUpdatePayload
 } from "@/lib/types";
 
-const wait = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, "");
+const ENABLE_MOCK_FALLBACK = process.env.NEXT_PUBLIC_ENABLE_MOCK_FALLBACK === "true";
+
+export class ApiClientError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "ApiClientError";
+    this.status = status;
+  }
+}
 
 interface BackendComplaint {
-  id: number;
   referenceId: string;
   originalText: string;
   normalizedEnglishText: string | null;
   originalLanguage: SupportedLanguage | null;
+  detectedLanguage?: string | null;
   category: ComplaintCategory;
-  subcategory: string;
+  subcategory: string | null;
+  department: ComplaintDepartment | null;
   priority: ComplaintPriority;
   status: ComplaintStatus;
   latitude: number | null;
   longitude: number | null;
   landmark: string | null;
+  locality?: string | null;
+  wardName?: string | null;
+  wardNumber?: number | null;
   photoUrl: string | null;
-  department: string;
   assignedTeam: string | null;
+  internalNote?: string | null;
+  analysisSource?: AnalysisSource | null;
+  requiresHumanVerification?: boolean;
+  reasoningSummary?: string | null;
   createdAt: string;
   updatedAt: string;
-}
-
-interface BackendCreateResponse {
-  referenceId: string;
-  status: "SUBMITTED";
-  createdAt: string;
 }
 
 interface BackendAdminList {
@@ -45,484 +69,427 @@ interface BackendAdminList {
   pageSize: number;
 }
 
-interface BackendAnalytics {
-  openComplaints: number;
-  highPriorityIssues: number;
-  resolvedToday: number;
-  possibleDuplicates: number;
-  complaintsByCategory: Array<{category: string; count: number}>;
-  complaintsByDate: Array<{date: string; count: number}>;
-}
+type QueryPrimitive = string | number | boolean | null | undefined;
+type QueryParams = Record<string, QueryPrimitive>;
 
-interface BackendMapPoint {
-  referenceId: string;
-  category: ComplaintCategory;
-  priority: ComplaintPriority;
-  status: ComplaintStatus;
-  latitude: number;
-  longitude: number;
-  landmark: string | null;
-}
-
-export interface AnalyseComplaintRequest {
-  text: string;
-  language: SupportedLanguage;
-  photoUrl: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  categoryHint?: string | null;
-}
-
-export interface SubmitComplaintRequest {
-  originalText: string;
-  originalLanguage: SupportedLanguage;
-  normalizedEnglishText: string;
-  category: Complaint["category"];
-  subcategory: string;
-  priority: ComplaintPriority;
-  landmark: string;
-  latitude: number;
-  longitude: number;
-  photoUrl?: string;
-  detectedLabels?: string[];
-}
-
-export interface UpdateComplaintRequest {
-  status?: ComplaintStatus;
-  department?: string;
-  assignedTeam?: string;
-  internalNote?: string;
-  duplicateOf?: string;
-}
-
-export async function analyseComplaint(request: AnalyseComplaintRequest): Promise<ComplaintAnalysis> {
-  if (API_BASE_URL) {
-    const response = await requestJson<ComplaintAnalysis>("/api/complaints/analyse", {
-      method: "POST",
-      body: JSON.stringify(request)
-    });
-    return {
-      ...response,
-      issueTitle: titleFromAnalysis(response),
-      detectedLabels: request.photoUrl ? ["possible issue requires field verification"] : []
-    };
-  }
-
-  await wait(850);
-  const text = request.text.toLowerCase();
-  const hasAny = (terms: string[]) => terms.some((term) => text.includes(term));
-  const locationText = extractKnownLocation(request.text);
-
-  if (request.categoryHint === "other" || hasAny(["robbery", "theft", "stolen", "burglary", "house robbery", "break-in"])) {
-    return {
-      normalizedEnglishText: request.text,
-      category: "OTHER",
-      subcategory: "MISCELLANEOUS",
-      priority: hasAny(["robbery", "theft", "stolen", "burglary", "break-in"]) ? "HIGH" : "LOW",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact location or landmark for routing. For emergencies, contact the relevant emergency service directly.",
-      issueTitle: "Miscellaneous issue",
-      detectedLabels: request.photoUrl ? ["possible issue requires field verification"] : []
-    };
-  }
-
-  const hinted = analyseCategoryHint(request.categoryHint, request, locationText);
-  if (hinted) return hinted;
-
-  if (hasAny(["waterlogging", "stagnant water", "నీరు", "जलभराव"])) {
-    return {
-      normalizedEnglishText: "There is waterlogging near Gachibowli signal.",
-      category: "WATERLOGGING",
-      subcategory: "ROAD_WATERLOGGING",
-      priority: "MEDIUM",
-      locationText: locationText ?? (text.includes("gachibowli") ? "Gachibowli signal" : null),
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact location or select it on the map.",
-      issueTitle: "Road waterlogging",
-      detectedLabels: request.photoUrl ? ["stagnant water"] : []
-    };
-  }
-
-  if (hasAny(["pothole", "గుంత", "गड्ढा"])) {
-    return {
-      normalizedEnglishText: "There is a pothole on the road.",
-      category: "ROADS",
-      subcategory: "POTHOLE",
-      priority: "HIGH",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact road or landmark.",
-      issueTitle: "Road pothole",
-      detectedLabels: request.photoUrl ? ["possible road damage"] : []
-    };
-  }
-
-  if (hasAny(["street light", "streetlight", "light", "దీపం"])) {
-    return {
-      normalizedEnglishText: request.text,
-      category: "STREET_LIGHTS",
-      subcategory: "BROKEN_STREET_LIGHT",
-      priority: "LOW",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the pole location or nearest landmark.",
-      issueTitle: "Broken street light",
-      detectedLabels: []
-    };
-  }
-
-  if (hasAny(["traffic signal", "signal", "ట్రాఫిక్", "ट्रैफिक"])) {
-    return {
-      normalizedEnglishText: request.text,
-      category: "TRAFFIC",
-      subcategory: "SIGNAL_NOT_WORKING",
-      priority: "HIGH",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact junction or signal location.",
-      issueTitle: "Traffic signal problem",
-      detectedLabels: []
-    };
-  }
-
-  if (hasAny(["water supply", "low pressure", "no water", "నీటి సరఫరా", "पानी"])) {
-    return {
-      normalizedEnglishText: request.text,
-      category: "WATER_SUPPLY",
-      subcategory: "WATER_SUPPLY_ISSUE",
-      priority: "MEDIUM",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact lane, apartment, or nearest landmark.",
-      issueTitle: "Water-supply issue",
-      detectedLabels: []
-    };
-  }
-
-  if (!hasAny(["garbage", "waste", "trash", "dump", "drain", "చెత్త", "कचरा", "نالی", "کچرا"])) {
-    return {
-      normalizedEnglishText: request.text,
-      category: "OTHER",
-      subcategory: "MISCELLANEOUS",
-      priority: "LOW",
-      locationText,
-      missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-      followUpQuestion: "Please share the exact location or landmark for routing.",
-      issueTitle: "Miscellaneous issue",
-      detectedLabels: request.photoUrl ? ["possible issue requires field verification"] : []
-    };
-  }
-
+export function getApiMode(): ApiMode {
   return {
-    normalizedEnglishText: request.text.includes("Madhapur")
-      ? "Garbage has accumulated near Madhapur Metro."
-      : "Garbage is blocking the roadside drain near Kondapur RTO office.",
-    category: request.text.toLowerCase().includes("drain") ? "DRAINAGE" : "SANITATION",
-    subcategory: request.text.toLowerCase().includes("drain") ? "BLOCKED_DRAIN" : "GARBAGE_ACCUMULATION",
-    priority: "MEDIUM",
-    locationText: request.text.includes("Kondapur")
-      ? "Near Kondapur RTO office"
-      : request.text.includes("Madhapur")
-        ? "Near Madhapur Metro"
-        : null,
-    missingFields: request.latitude && request.longitude ? [] : ["latitude", "longitude"],
-    followUpQuestion: "Please share the exact location or select it on the map.",
-    issueTitle: "Garbage accumulation and blocked drain",
-    detectedLabels: request.photoUrl ? ["garbage accumulation", "possible drain blockage"] : []
+    baseUrl: API_BASE_URL,
+    live: true,
+    mockFallbackEnabled: ENABLE_MOCK_FALLBACK
   };
 }
 
-function analyseCategoryHint(
-  hint: string | null | undefined,
-  request: AnalyseComplaintRequest,
-  locationText: string | null
-): ComplaintAnalysis | null {
-  const base = {
-    normalizedEnglishText: request.text,
-    locationText,
-    missingFields: request.latitude && request.longitude ? [] : (["latitude", "longitude"] as Array<"latitude" | "longitude">),
-    detectedLabels: request.photoUrl ? ["possible issue requires field verification"] : []
-  };
+export async function healthCheck(signal?: AbortSignal): Promise<{status: string}> {
+  return requestJson<{status: string}>("/api/health", {signal});
+}
 
-  const byHint: Record<string, Omit<ComplaintAnalysis, keyof typeof base>> = {
-    garbage: {
-      category: "SANITATION",
-      subcategory: "GARBAGE_ACCUMULATION",
-      priority: "MEDIUM",
-      followUpQuestion: "Please share the exact location or select it on the map.",
-      issueTitle: "Garbage accumulation"
+export async function analyseComplaint(request: ComplaintAnalysisRequest, signal?: AbortSignal): Promise<ComplaintAnalysisResponse> {
+  return withMockFallback(
+    () => requestJson<Partial<ComplaintAnalysisResponse>>("/api/complaints/analyse", {method: "POST", body: request, signal}).then((response) => ({
+      normalizedEnglishText: response.normalizedEnglishText ?? request.text,
+      detectedLanguage: response.detectedLanguage ?? request.language,
+      category: response.category ?? "OTHER",
+      subcategory: response.subcategory ?? "MISCELLANEOUS",
+      department: response.department ?? departmentForCategory(response.category ?? "OTHER"),
+      priority: response.priority ?? "LOW",
+      locationText: response.locationText ?? request.landmark ?? null,
+      missingFields: response.missingFields ?? inferMissingFields(request.latitude, request.longitude),
+      followUpQuestion: response.followUpQuestion ?? null,
+      citizenReply: response.citizenReply ?? response.followUpQuestion ?? null,
+      reasoningSummary: response.reasoningSummary ?? `${titleFromParts(response.subcategory, response.category)} reported.`,
+      requiresHumanVerification: response.requiresHumanVerification ?? true,
+      analysisSource: response.analysisSource ?? "FALLBACK_RULES",
+      issueTitle: response.issueTitle ?? titleFromParts(response.subcategory, response.category),
+      detectedLabels: response.detectedLabels ?? []
+    })),
+    () => mockAnalyseComplaint(request)
+  );
+}
+
+export async function submitComplaint(payload: ComplaintCreatePayload, signal?: AbortSignal): Promise<Complaint> {
+  return withMockFallback(
+    async () => {
+      const response = await requestJson<BackendComplaint | {referenceId: string; status: ComplaintStatus; createdAt: string}>(
+        "/api/complaints",
+        {method: "POST", body: serializeComplaintPayload(payload), signal}
+      );
+      if ("originalText" in response) return mapBackendComplaint(response);
+      const complaint = await getComplaint(response.referenceId, signal);
+      if (!complaint) throw new ApiClientError(`Complaint ${response.referenceId} was created but could not be retrieved.`);
+      return complaint;
     },
-    blockedDrain: {
-      category: "DRAINAGE",
-      subcategory: "BLOCKED_DRAIN",
-      priority: "MEDIUM",
-      followUpQuestion: "Please share the exact drain location or landmark.",
-      issueTitle: "Blocked drain"
-    },
-    waterlogging: {
-      category: "WATERLOGGING",
-      subcategory: "ROAD_WATERLOGGING",
-      priority: "MEDIUM",
-      followUpQuestion: "Please share the exact flooded stretch or landmark.",
-      issueTitle: "Road waterlogging"
-    },
-    pothole: {
-      category: "ROADS",
-      subcategory: "POTHOLE",
-      priority: "HIGH",
-      followUpQuestion: "Please share the exact road or landmark.",
-      issueTitle: "Road pothole"
-    },
-    streetLight: {
-      category: "STREET_LIGHTS",
-      subcategory: "BROKEN_STREET_LIGHT",
-      priority: "LOW",
-      followUpQuestion: "Please share the pole location or nearest landmark.",
-      issueTitle: "Broken street light"
-    },
-    waterSupply: {
-      category: "WATER_SUPPLY",
-      subcategory: "WATER_SUPPLY_ISSUE",
-      priority: "MEDIUM",
-      followUpQuestion: "Please share the exact lane, apartment, or nearest landmark.",
-      issueTitle: "Water-supply issue"
-    },
-    trafficSignal: {
-      category: "TRAFFIC",
-      subcategory: "SIGNAL_NOT_WORKING",
-      priority: "HIGH",
-      followUpQuestion: "Please share the exact junction or signal location.",
-      issueTitle: "Traffic signal problem"
-    }
-  };
-
-  if (!hint || !byHint[hint]) return null;
-  return {...base, ...byHint[hint]};
-}
-
-function extractKnownLocation(text: string): string | null {
-  const localities = [
-    "Kondapur",
-    "Madhapur",
-    "Gachibowli",
-    "Ameerpet",
-    "Kukatpally",
-    "Charminar",
-    "Jubilee Hills",
-    "Hitech City",
-    "Begumpet",
-    "Secunderabad"
-  ];
-  const match = localities.find((locality) => text.toLowerCase().includes(locality.toLowerCase()));
-  return match ?? null;
-}
-
-export async function submitComplaint(request: SubmitComplaintRequest): Promise<Complaint> {
-  if (API_BASE_URL) {
-    const created = await requestJson<BackendCreateResponse>("/api/complaints", {
-      method: "POST",
-      body: JSON.stringify(request)
-    });
-    const complaint = await getComplaint(created.referenceId);
-    if (complaint) return complaint;
-    return {
-      id: created.referenceId,
-      category: request.category,
-      subcategory: request.subcategory,
-      originalText: request.originalText,
-      normalizedEnglishText: request.normalizedEnglishText,
-      originalLanguage: request.originalLanguage,
-      landmark: request.landmark,
-      latitude: request.latitude,
-      longitude: request.longitude,
-      photoUrl: request.photoUrl,
-      detectedLabels: request.detectedLabels,
-      priority: request.priority,
-      status: created.status,
-      department: departmentForCategory(request.category),
-      createdAt: created.createdAt,
-      updatedAt: created.createdAt
-    };
-  }
-
-  await wait(700);
-  // TODO: POST /api/complaints will be connected to FastAPI here.
-  return {
-    id: "HYD-SAN-0142",
-    category: request.category,
-    subcategory: request.subcategory,
-    originalText: request.originalText,
-    normalizedEnglishText: request.normalizedEnglishText,
-    originalLanguage: request.originalLanguage,
-    landmark: request.landmark,
-    latitude: request.latitude,
-    longitude: request.longitude,
-    photoUrl: request.photoUrl,
-    detectedLabels: request.detectedLabels,
-    priority: request.priority,
-    status: "SUBMITTED",
-    department: request.category === "DRAINAGE" ? "Sanitation / Drainage" : "Sanitation",
-    createdAt: "2026-05-30T10:42:00+05:30",
-    updatedAt: "2026-05-30T10:42:00+05:30",
-    possibleDuplicateIds: ["HYD-SAN-0138"]
-  };
-}
-
-export async function getComplaint(id: string): Promise<Complaint | null> {
-  if (API_BASE_URL) {
-    const response = await fetch(`${API_BASE_URL}/api/complaints/${encodeURIComponent(id)}`, {
-      cache: "no-store"
-    });
-    if (response.status === 404) return null;
-    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`);
-    return mapBackendComplaint((await response.json()) as BackendComplaint);
-  }
-
-  await wait(300);
-  return complaints.find((complaint) => complaint.id.toLowerCase() === id.toLowerCase()) ?? null;
-}
-
-export async function getAdminComplaints(): Promise<Complaint[]> {
-  if (API_BASE_URL) {
-    const response = await requestJson<BackendAdminList>("/api/admin/complaints?page_size=100");
-    return response.items.map(mapBackendComplaint);
-  }
-
-  await wait(350);
-  // TODO: GET /api/admin/complaints will be connected to FastAPI here.
-  return complaints;
-}
-
-export async function updateComplaint(id: string, request: UpdateComplaintRequest): Promise<Complaint | null> {
-  if (API_BASE_URL) {
-    const response = await fetch(`${API_BASE_URL}/api/admin/complaints/${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(request),
-      cache: "no-store"
-    });
-    if (response.status === 404) return null;
-    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`);
-    return mapBackendComplaint((await response.json()) as BackendComplaint);
-  }
-
-  await wait(500);
-  // TODO: PATCH /api/admin/complaints/{id} will be connected to FastAPI here.
-  const complaint = complaints.find((item) => item.id === id);
-  if (!complaint) return null;
-  return {...complaint, ...request, updatedAt: "2026-05-30T11:20:00+05:30"};
-}
-
-export async function getAnalytics(): Promise<AnalyticsSummary> {
-  if (API_BASE_URL) {
-    const response = await requestJson<BackendAnalytics>("/api/admin/analytics");
-    return {
-      openComplaints: response.openComplaints,
-      highPriorityIssues: response.highPriorityIssues,
-      resolvedToday: response.resolvedToday,
-      possibleDuplicates: response.possibleDuplicates,
-      trend: response.complaintsByDate.map((item) => ({
-        day: item.date,
-        complaints: item.count,
-        resolved: 0
-      })),
-      categories: response.complaintsByCategory.map((item) => ({
-        category: item.category.replaceAll("_", " "),
-        count: item.count
-      }))
-    };
-  }
-
-  await wait(300);
-  return analyticsSummary;
-}
-
-export async function getMapPoints(): Promise<Complaint[]> {
-  if (API_BASE_URL) {
-    const response = await requestJson<BackendMapPoint[]>("/api/admin/map-points");
-    return response.map((point) => ({
-      id: point.referenceId,
-      category: point.category,
-      subcategory: point.category,
-      originalText: "",
-      normalizedEnglishText: "",
-      originalLanguage: "en",
-      landmark: point.landmark ?? "Location shared by citizen",
-      latitude: point.latitude,
-      longitude: point.longitude,
-      priority: point.priority,
-      status: point.status,
-      department: departmentForCategory(point.category),
+    () => ({
+      ...mockComplaints[0],
+      id: "MOCK-SUBMITTED",
+      referenceId: "MOCK-SUBMITTED",
+      originalText: payload.originalText,
+      normalizedEnglishText: payload.normalizedEnglishText ?? payload.originalText,
+      originalLanguage: payload.originalLanguage ?? "en",
+      detectedLanguage: payload.detectedLanguage,
+      category: payload.category,
+      subcategory: payload.subcategory ?? "MISCELLANEOUS",
+      department: payload.department ?? departmentForCategory(payload.category),
+      priority: payload.priority,
+      status: "SUBMITTED",
+      landmark: payload.landmark ?? "Location to be confirmed",
+      locality: payload.locality,
+      latitude: payload.latitude ?? 17.385,
+      longitude: payload.longitude ?? 78.4867,
+      photoUrl: payload.photoUrl ?? undefined,
+      analysisSource: payload.analysisSource,
+      requiresHumanVerification: payload.requiresHumanVerification ?? true,
+      reasoningSummary: payload.reasoningSummary,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    }));
-  }
-
-  await wait(300);
-  return complaints;
+    })
+  );
 }
 
-async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!API_BASE_URL) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not configured.");
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers
+export async function getComplaint(referenceId: string, signal?: AbortSignal): Promise<Complaint | null> {
+  return withMockFallback(
+    async () => {
+      const response = await fetchJson<BackendComplaint>(`/api/complaints/${encodeURIComponent(referenceId)}`, {signal});
+      return response ? mapBackendComplaint(response) : null;
     },
-    cache: "no-store"
-  });
+    () => mockComplaints.find((complaint) => complaint.id.toLowerCase() === referenceId.toLowerCase()) ?? null
+  );
+}
 
-  if (!response.ok) {
-    throw new Error(`Backend request failed: ${response.status}`);
+export async function getAdminComplaints(query: AdminComplaintQuery = {}, signal?: AbortSignal): Promise<AdminComplaintListResponse> {
+  return withMockFallback(
+    async () => {
+      const response = await requestJson<BackendAdminList>("/api/admin/complaints", {
+        query: {
+          search: query.search,
+          category: query.category,
+          priority: query.priority,
+          status: query.status,
+          locality: query.locality,
+          ward_number: query.wardNumber,
+          language: query.language,
+          page: query.page ?? 1,
+          page_size: query.pageSize ?? 20
+        },
+        signal
+      });
+      return {
+        items: response.items.map(mapBackendComplaint),
+        total: response.total,
+        page: response.page,
+        pageSize: response.pageSize
+      };
+    },
+    () => {
+      const page = query.page ?? 1;
+      const pageSize = query.pageSize ?? 20;
+      const filtered = filterMockComplaints(query);
+      return {items: filtered.slice((page - 1) * pageSize, page * pageSize), total: filtered.length, page, pageSize};
+    }
+  );
+}
+
+export async function updateComplaint(referenceId: string, payload: ComplaintUpdatePayload, signal?: AbortSignal): Promise<Complaint | null> {
+  return withMockFallback(
+    async () => {
+      const response = await fetchJson<BackendComplaint>(`/api/admin/complaints/${encodeURIComponent(referenceId)}`, {
+        method: "PATCH",
+        body: payload,
+        signal
+      });
+      return response ? mapBackendComplaint(response) : null;
+    },
+    () => {
+      const complaint = mockComplaints.find((item) => item.id === referenceId);
+      if (!complaint) return null;
+      return {...complaint, ...payload, updatedAt: new Date().toISOString()};
+    }
+  );
+}
+
+export async function getAdminAnalytics(signal?: AbortSignal): Promise<AnalyticsSummary> {
+  return withMockFallback(
+    async () => mapAnalytics(await requestJson<AdminAnalyticsResponse>("/api/admin/analytics", {signal})),
+    () => ({...analyticsSummary, localities: [], wards: [], hotspots: []})
+  );
+}
+
+export const getAnalytics = getAdminAnalytics;
+
+export async function getAdminMapPoints(signal?: AbortSignal): Promise<MapPoint[]> {
+  return withMockFallback(
+    () => requestJson<MapPoint[]>("/api/admin/map-points", {signal}),
+    () => mockComplaints.map((complaint) => ({
+      referenceId: complaint.id,
+      category: complaint.category,
+      priority: complaint.priority,
+      status: complaint.status,
+      latitude: complaint.latitude,
+      longitude: complaint.longitude,
+      landmark: complaint.landmark,
+      locality: complaint.locality ?? null
+    }))
+  );
+}
+
+export async function getMapPoints(signal?: AbortSignal): Promise<Complaint[]> {
+  const points = await getAdminMapPoints(signal);
+  return points.map(mapPointToComplaint);
+}
+
+export async function getNearbyComplaints(
+  params: {latitude: number; longitude: number; radiusMeters?: number; category?: ComplaintCategory},
+  signal?: AbortSignal
+): Promise<NearbyComplaint[]> {
+  return withMockFallback(
+    () => requestJson<NearbyComplaint[]>("/api/admin/nearby-complaints", {
+      query: {
+        latitude: params.latitude,
+        longitude: params.longitude,
+        radius_meters: params.radiusMeters ?? 200,
+        category: params.category
+      },
+      signal
+    }),
+    () => []
+  );
+}
+
+export async function getHotspots(
+  params: {radiusMeters?: number; minComplaints?: number; category?: ComplaintCategory} = {},
+  signal?: AbortSignal
+): Promise<Hotspot[]> {
+  return withMockFallback(
+    () => requestJson<Hotspot[]>("/api/admin/hotspots", {
+      query: {
+        radius_meters: params.radiusMeters ?? 300,
+        min_complaints: params.minComplaints ?? 3,
+        category: params.category
+      },
+      signal
+    }),
+    () => []
+  );
+}
+
+async function requestJson<T>(
+  path: string,
+  options: {method?: "GET" | "POST" | "PATCH"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+): Promise<T> {
+  const response = await fetchJson<T>(path, options);
+  if (response === null) throw new ApiClientError("Backend returned an empty response.");
+  return response;
+}
+
+async function fetchJson<T>(
+  path: string,
+  options: {method?: "GET" | "POST" | "PATCH"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+): Promise<T | null> {
+  const url = buildUrl(path, options.query);
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: options.method ?? "GET",
+      headers: {"Content-Type": "application/json"},
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: options.signal,
+      cache: "no-store"
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new ApiClientError("Could not connect to the backend. Please confirm that the FastAPI server is running.");
   }
 
-  return (await response.json()) as T;
+  if (response.status === 404) return null;
+  const text = await response.text();
+  const data = text ? parseJson(text) : null;
+  if (!response.ok) {
+    throw new ApiClientError(extractErrorMessage(data, response.status), response.status);
+  }
+  return data as T | null;
+}
+
+function buildUrl(path: string, query?: QueryParams): string {
+  const url = new URL(path, API_BASE_URL);
+  Object.entries(query ?? {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
+  });
+  return url.toString();
+}
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new ApiClientError("Backend returned invalid JSON.");
+  }
+}
+
+function extractErrorMessage(data: unknown, status: number): string {
+  if (typeof data === "object" && data !== null && "detail" in data) {
+    const detail = (data as {detail: unknown}).detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) return detail.map((item) => {
+      if (typeof item === "object" && item !== null && "msg" in item) return String((item as {msg: unknown}).msg);
+      return String(item);
+    }).join("; ");
+  }
+  if (status === 422) return "Could not submit complaint. Please review the entered details.";
+  if (status >= 500) return "Backend server error. Please try again shortly.";
+  return `Backend request failed with status ${status}.`;
+}
+
+async function withMockFallback<T>(live: () => Promise<T>, fallback: () => T | Promise<T>): Promise<T> {
+  try {
+    return await live();
+  } catch (error) {
+    if (!ENABLE_MOCK_FALLBACK) throw error;
+    console.warn("Using mock data because backend request failed.", error);
+    return fallback();
+  }
 }
 
 function mapBackendComplaint(complaint: BackendComplaint): Complaint {
   return {
     id: complaint.referenceId,
+    referenceId: complaint.referenceId,
     category: complaint.category,
-    subcategory: complaint.subcategory,
+    subcategory: complaint.subcategory ?? "MISCELLANEOUS",
     originalText: complaint.originalText,
     normalizedEnglishText: complaint.normalizedEnglishText ?? complaint.originalText,
     originalLanguage: complaint.originalLanguage ?? "en",
-    landmark: complaint.landmark ?? "Location to be confirmed",
+    detectedLanguage: complaint.detectedLanguage ?? complaint.originalLanguage ?? null,
+    landmark: complaint.landmark ?? "No landmark provided",
+    locality: complaint.locality ?? null,
+    wardName: complaint.wardName ?? null,
+    wardNumber: complaint.wardNumber ?? null,
     latitude: complaint.latitude ?? 17.385,
     longitude: complaint.longitude ?? 78.4867,
     photoUrl: complaint.photoUrl ?? undefined,
     detectedLabels: [],
     priority: complaint.priority,
     status: complaint.status,
-    department: complaint.department,
+    department: complaint.department ?? departmentForCategory(complaint.category),
     assignedTeam: complaint.assignedTeam ?? undefined,
+    internalNote: complaint.internalNote ?? null,
+    analysisSource: complaint.analysisSource ?? null,
+    requiresHumanVerification: complaint.requiresHumanVerification ?? true,
+    reasoningSummary: complaint.reasoningSummary ?? null,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt
   };
 }
 
-function titleFromAnalysis(analysis: Pick<ComplaintAnalysis, "subcategory" | "category">): string {
-  return analysis.subcategory
-    .replaceAll("_", " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase()) || analysis.category;
+function mapPointToComplaint(point: MapPoint): Complaint {
+  return {
+    id: point.referenceId,
+    referenceId: point.referenceId,
+    category: point.category,
+    subcategory: point.category,
+    originalText: "",
+    normalizedEnglishText: "",
+    originalLanguage: "en",
+    landmark: point.landmark ?? "Location shared by citizen",
+    locality: point.locality,
+    latitude: point.latitude,
+    longitude: point.longitude,
+    priority: point.priority,
+    status: point.status,
+    department: departmentForCategory(point.category),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
 }
 
-function departmentForCategory(category: ComplaintCategory): string {
+function serializeComplaintPayload(payload: ComplaintCreatePayload): ComplaintCreatePayload {
   return {
-    SANITATION: "Sanitation",
-    DRAINAGE: "Drainage",
-    WATERLOGGING: "Drainage",
-    ROADS: "Roads",
-    STREET_LIGHTS: "Electrical",
-    WATER_SUPPLY: "Water Supply",
-    TRAFFIC: "Traffic",
-    PUBLIC_HEALTH: "Public Health",
-    OTHER: "Citizen Services"
-  }[category];
+    ...payload,
+    normalizedEnglishText: payload.normalizedEnglishText ?? payload.originalText,
+    department: payload.department ?? departmentForCategory(payload.category),
+    subcategory: payload.subcategory ?? "MISCELLANEOUS",
+    analysisSource: payload.analysisSource ?? "FALLBACK_RULES",
+    requiresHumanVerification: payload.requiresHumanVerification ?? true
+  };
+}
+
+function mapAnalytics(response: AdminAnalyticsResponse): AnalyticsSummary {
+  return {
+    openComplaints: response.openComplaints,
+    highPriorityIssues: response.highPriorityIssues,
+    resolvedToday: response.resolvedToday,
+    possibleDuplicates: response.possibleDuplicates ?? 0,
+    trend: response.complaintsByDate.map((item) => ({day: item.date, complaints: item.count, resolved: 0})),
+    categories: response.complaintsByCategory.map((item) => ({category: String(item.category).replaceAll("_", " "), count: item.count})),
+    localities: response.complaintsByLocality ?? [],
+    wards: response.complaintsByWard ?? [],
+    hotspots: response.hotspots ?? []
+  };
+}
+
+function filterMockComplaints(query: AdminComplaintQuery): Complaint[] {
+  return mockComplaints.filter((complaint) => {
+    const search = query.search?.toLowerCase();
+    const matchesSearch = !search || [complaint.id, complaint.landmark, complaint.subcategory, complaint.normalizedEnglishText]
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+    return matchesSearch
+      && (!query.category || complaint.category === query.category)
+      && (!query.priority || complaint.priority === query.priority)
+      && (!query.status || complaint.status === query.status)
+      && (!query.locality || complaint.landmark.toLowerCase().includes(query.locality.toLowerCase()))
+      && (!query.language || complaint.originalLanguage === query.language);
+  });
+}
+
+function mockAnalyseComplaint(request: ComplaintAnalysisRequest): ComplaintAnalysisResponse {
+  const lower = request.text.toLowerCase();
+  const category: ComplaintCategory = lower.includes("waterlogging") ? "WATERLOGGING" : lower.includes("pothole") ? "ROADS" : "OTHER";
+  const subcategory = category === "WATERLOGGING" ? "ROAD_WATERLOGGING" : category === "ROADS" ? "POTHOLE" : "MISCELLANEOUS";
+  return {
+    normalizedEnglishText: request.text,
+    detectedLanguage: request.language,
+    category,
+    subcategory,
+    department: departmentForCategory(category),
+    priority: category === "ROADS" ? "HIGH" : "MEDIUM",
+    locationText: request.landmark ?? null,
+    missingFields: inferMissingFields(request.latitude, request.longitude),
+    followUpQuestion: "Please share the exact location or select it on the map.",
+    citizenReply: "Please share the exact location so the issue can be reported accurately.",
+    reasoningSummary: `${titleFromParts(subcategory, category)} reported.`,
+    requiresHumanVerification: true,
+    analysisSource: "FALLBACK_RULES",
+    issueTitle: titleFromParts(subcategory, category),
+    detectedLabels: []
+  };
+}
+
+function inferMissingFields(latitude: number | null, longitude: number | null): Array<"latitude" | "longitude"> {
+  const fields: Array<"latitude" | "longitude"> = [];
+  if (latitude === null) fields.push("latitude");
+  if (longitude === null) fields.push("longitude");
+  return fields;
+}
+
+function titleFromParts(subcategory?: string | null, category?: string | null): string {
+  return (subcategory || category || "CIVIC_ISSUE")
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function departmentForCategory(category: ComplaintCategory): ComplaintDepartment {
+  const departments: Record<ComplaintCategory, ComplaintDepartment> = {
+    SANITATION: "SANITATION",
+    DRAINAGE: "DRAINAGE",
+    WATERLOGGING: "DRAINAGE",
+    ROADS: "ROADS",
+    STREET_LIGHTS: "ELECTRICAL",
+    WATER_SUPPLY: "WATER_SUPPLY",
+    TRAFFIC: "TRAFFIC",
+    PUBLIC_HEALTH: "PUBLIC_HEALTH",
+    OTHER: "MANUAL_REVIEW"
+  };
+  return departments[category];
 }

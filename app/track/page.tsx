@@ -49,7 +49,14 @@ export default function TrackPage() {
               setLookupError(null);
               setChecking(true);
               const reference = values.reference.trim().toUpperCase();
-              const complaint = await getComplaint(reference);
+              let complaint = null;
+              try {
+                complaint = await getComplaint(reference);
+              } catch (error) {
+                setLookupError(error instanceof Error ? error.message : "Could not connect to the backend. Please confirm that the FastAPI server is running.");
+                setChecking(false);
+                return;
+              }
               setChecking(false);
               if (!complaint) {
                 setLookupError("We could not find that complaint reference. Please check the ID and try again.");

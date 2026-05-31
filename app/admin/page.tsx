@@ -7,7 +7,7 @@ import {DashboardCharts} from "@/components/admin/dashboard-charts";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  const [analytics, complaints] = await Promise.all([getAnalytics(), getAdminComplaints()]);
+  const [analytics, complaintList] = await Promise.all([getAnalytics(), getAdminComplaints({pageSize: 5})]);
 
   return (
     <div className="space-y-6 p-6">
@@ -27,7 +27,7 @@ export default async function AdminOverviewPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Recent Complaints</h2>
-        <ComplaintTable complaints={complaints.slice(0, 5)} compact />
+        <ComplaintTable complaints={complaintList.items} compact />
       </section>
     </div>
   );

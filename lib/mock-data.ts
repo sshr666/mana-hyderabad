@@ -1,6 +1,6 @@
 import type {AnalyticsSummary, Complaint} from "@/lib/types";
 
-export const complaints: Complaint[] = [
+const rawComplaints: Array<Omit<Complaint, "referenceId">> = [
   {
     id: "HYD-SAN-0142",
     category: "DRAINAGE",
@@ -208,6 +208,11 @@ export const complaints: Complaint[] = [
   }
 ];
 
+export const complaints: Complaint[] = rawComplaints.map((complaint) => ({
+  ...complaint,
+  referenceId: complaint.id
+}));
+
 export const analyticsSummary: AnalyticsSummary = {
   openComplaints: 142,
   highPriorityIssues: 18,
@@ -228,5 +233,8 @@ export const analyticsSummary: AnalyticsSummary = {
     {category: "Waterlogging", count: 18},
     {category: "Lights", count: 11},
     {category: "Traffic", count: 8}
-  ]
+  ],
+  localities: [],
+  wards: [],
+  hotspots: []
 };

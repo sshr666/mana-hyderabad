@@ -12,16 +12,20 @@ export function DashboardCharts({analytics}: {analytics: AnalyticsSummary}) {
           <CardTitle>Complaint Trend</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={analytics.trend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="complaints" stroke="#0f766e" strokeWidth={2} />
-              <Line type="monotone" dataKey="resolved" stroke="#d97706" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+          {analytics.trend.length === 0 ? (
+            <EmptyChart />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={analytics.trend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="complaints" stroke="#0f766e" strokeWidth={2} />
+                <Line type="monotone" dataKey="resolved" stroke="#d97706" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -30,17 +34,25 @@ export function DashboardCharts({analytics}: {analytics: AnalyticsSummary}) {
           <CardTitle>Issue Categories</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={analytics.categories}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="category" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#0f766e" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {analytics.categories.length === 0 ? (
+            <EmptyChart />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={analytics.categories}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#0f766e" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </div>
   );
+}
+
+function EmptyChart() {
+  return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No complaint data is available yet.</div>;
 }

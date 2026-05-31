@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminComplaintDetailPage({params}: {params: Promise<{id: string}>}) {
   const {id} = await params;
-  const [complaint, complaints] = await Promise.all([getComplaint(id), getAdminComplaints()]);
+  const [complaint, complaintList] = await Promise.all([getComplaint(id), getAdminComplaints({pageSize: 100})]);
   if (!complaint) notFound();
-  const duplicates = complaints.filter((item) => complaint.possibleDuplicateIds?.includes(item.id));
+  const duplicates = complaintList.items.filter((item) => complaint.possibleDuplicateIds?.includes(item.id));
 
   return (
     <div className="space-y-6 p-6">

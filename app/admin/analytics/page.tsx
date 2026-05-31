@@ -16,6 +16,26 @@ export default async function AnalyticsPage() {
       <DashboardCharts analytics={analytics} />
       <Card>
         <CardHeader>
+          <CardTitle>Hotspots</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {analytics.hotspots.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No hotspot data is available yet.</p>
+          ) : (
+            analytics.hotspots.map((hotspot) => (
+              <div key={`${hotspot.locality}-${hotspot.category}`} className="grid gap-2 rounded-xl border p-4 text-sm md:grid-cols-5">
+                <span className="font-semibold">{hotspot.locality}</span>
+                <span>{hotspot.category.replaceAll("_", " ")}</span>
+                <span>{hotspot.complaintCount} complaints</span>
+                <span>{hotspot.centerLatitude?.toFixed(4) ?? "N/A"}, {hotspot.centerLongitude?.toFixed(4) ?? "N/A"}</span>
+                <span>{new Date(hotspot.latestComplaintAt).toLocaleDateString()}</span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
           <CardTitle>Operational Notes</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">

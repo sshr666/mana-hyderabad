@@ -32,40 +32,61 @@ export default function ReportPage() {
   const [labels, setLabels] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState<Complaint | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const runAnalysis = async (complaintText: string) => {
-    setText(complaintText);
-    setStep("analysis");
-    const result = await analyseComplaint({
-      text: complaintText,
-      language: locale,
-      photoUrl,
-      latitude: location?.latitude ?? null,
-      longitude: location?.longitude ?? null,
-      categoryHint: new URLSearchParams(window.location.search).get("category")
-    });
-    setAnalysis(result);
+    try {
+      setError(null);
+      setAnalysis(null);
+      setText(complaintText);
+      setStep("analysis");
+      const result = await analyseComplaint({
+        text: complaintText,
+        language: locale,
+        photoUrl,
+        latitude: location?.latitude ?? null,
+        longitude: location?.longitude ?? null,
+        landmark: location?.landmark ?? null,
+        categoryHint: new URLSearchParams(window.location.search).get("category")
+      });
+      setAnalysis(result);
+    } catch (analysisError) {
+      setError(analysisError instanceof Error ? analysisError.message : "Could not understand the complaint. Please try again.");
+      setStep("input");
+    }
   };
 
   const submit = async () => {
     if (!analysis || !location) return;
-    setSubmitting(true);
-    const result = await submitComplaint({
-      originalText: text,
-      originalLanguage: locale,
-      normalizedEnglishText: analysis.normalizedEnglishText,
-      category: analysis.category,
-      subcategory: analysis.subcategory,
-      priority: analysis.priority,
-      landmark: location.landmark,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      photoUrl: photoUrl ?? undefined,
-      detectedLabels: labels
-    });
-    setSubmitted(result);
-    setSubmitting(false);
-    setStep("submitted");
+    try {
+      setError(null);
+      setSubmitting(true);
+      const result = await submitComplaint({
+        originalText: text,
+        originalLanguage: locale,
+        detectedLanguage: analysis.detectedLanguage ?? locale,
+        normalizedEnglishText: analysis.normalizedEnglishText,
+        category: analysis.category,
+        subcategory: analysis.subcategory,
+        department: analysis.department ?? undefined,
+        priority: analysis.priority,
+        landmark: location.landmark,
+        locality: inferLocality(location.landmark),
+        latitude: location.latitude,
+        longitude: location.longitude,
+        photoUrl: photoUrl ?? null,
+        detectedLabels: labels,
+        analysisSource: analysis.analysisSource ?? "FALLBACK_RULES",
+        requiresHumanVerification: analysis.requiresHumanVerification ?? true,
+        reasoningSummary: analysis.reasoningSummary ?? null
+      });
+      setSubmitted(result);
+      setStep("submitted");
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Could not submit complaint. Please review the entered details.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -82,6 +103,12 @@ export default function ReportPage() {
         <h1 className="text-3xl font-bold tracking-normal">{t("report.title")}</h1>
         <p className="mt-2 text-muted-foreground">{t("report.intro")} {t("report.hint")}</p>
       </header>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       {step === "input" && <ComplaintInput onContinue={runAnalysis} />}
 
@@ -200,4 +227,9 @@ function Detail({label, value}: {label: string; value: string}) {
       <Badge className="max-w-72 justify-center text-wrap text-right">{value}</Badge>
     </div>
   );
+}
+
+function inferLocality(text: string): string | null {
+  const localities = ["Kondapur", "Madhapur", "Gachibowli", "Ameerpet", "Kukatpally", "Charminar", "Jubilee Hills", "Hitech City", "Begumpet", "Secunderabad"];
+  return localities.find((locality) => text.toLowerCase().includes(locality.toLowerCase())) ?? null;
 }

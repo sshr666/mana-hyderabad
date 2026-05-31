@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {CheckCircle2, ClipboardList, Map, BarChart3, Search, Send} from "lucide-react";
-import {complaints} from "@/lib/mock-data";
+import {getAdminComplaints, getApiMode, getHotspots, getNearbyComplaints, healthCheck} from "@/lib/api-client";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
@@ -25,14 +25,23 @@ const checklist = [
   "Citizen complaint report flow with analysis, location, photo, review, and submit steps",
   "Complaint tracking route with invalid-reference handling",
   "Admin overview KPIs, trend chart, category chart, and recent complaints",
-  "Admin complaints table with search and mock-data filters",
-  "Admin complaint detail actions with mock state feedback",
+  "Admin complaints table with backend filters",
+  "Admin complaint detail actions with persisted FastAPI updates",
   "MapLibre operations map with marker selection and filter controls",
-  "Mock API boundary isolated in lib/api-client.ts for FastAPI integration"
+  "Live API boundary isolated in lib/api-client.ts"
 ];
 
-export default function QAPage() {
-  const duplicateCount = complaints.filter((complaint) => complaint.possibleDuplicateIds?.length).length;
+export const dynamic = "force-dynamic";
+
+export default async function QAPage() {
+  const mode = getApiMode();
+  const [health, complaintList, nearby, hotspots] = await Promise.allSettled([
+    healthCheck(),
+    getAdminComplaints({pageSize: 5}),
+    getNearbyComplaints({latitude: 17.4483, longitude: 78.3915, radiusMeters: 200}),
+    getHotspots({radiusMeters: 300, minComplaints: 3})
+  ]);
+  const complaintCount = complaintList.status === "fulfilled" ? complaintList.value.total : 0;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-6">
@@ -67,13 +76,15 @@ export default function QAPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Mock Data Summary</CardTitle>
+            <CardTitle>Backend Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between"><span>Total complaints</span><Badge>{complaints.length}</Badge></div>
-            <div className="flex justify-between"><span>Possible duplicates</span><Badge>{duplicateCount}</Badge></div>
-            <div className="flex justify-between"><span>Languages</span><Badge>en, te, hi, ur</Badge></div>
-            <div className="flex justify-between"><span>Localities</span><Badge>10 Hyderabad areas</Badge></div>
+            <div className="flex justify-between"><span>API base URL</span><Badge>{mode.baseUrl}</Badge></div>
+            <div className="flex justify-between"><span>Mode</span><Badge>{mode.mockFallbackEnabled ? "Fallback enabled" : "Live only"}</Badge></div>
+            <div className="flex justify-between"><span>Health</span><Badge>{health.status === "fulfilled" ? health.value.status : "offline"}</Badge></div>
+            <div className="flex justify-between"><span>Complaints</span><Badge>{complaintCount}</Badge></div>
+            <div className="flex justify-between"><span>Nearby test</span><Badge>{nearby.status === "fulfilled" ? nearby.value.length : "error"}</Badge></div>
+            <div className="flex justify-between"><span>Hotspots</span><Badge>{hotspots.status === "fulfilled" ? hotspots.value.length : "error"}</Badge></div>
           </CardContent>
         </Card>
       </div>

@@ -2,9 +2,9 @@
 
 FastAPI backend foundation for the Mana Hyderabad civic complaint platform.
 
-This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Alembic migrations, seed data, and pytest coverage.
+This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Cloudinary image uploads, Alembic migrations, seed data, and pytest coverage.
 
-It intentionally does not include LLMs, translation APIs, speech processing, computer vision, authentication, cloud file storage, or pgvector semantic search yet.
+It intentionally does not include LLMs, translation APIs, speech processing, computer vision, authentication, or pgvector semantic search yet.
 
 ## Setup
 
@@ -24,6 +24,12 @@ uvicorn app.main:app --reload
 ```env
 DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/mana_hyderabad
 FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CLOUDINARY_UPLOAD_FOLDER=mana-hyderabad/complaints
+MAX_UPLOAD_SIZE_MB=8
+ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp
 ```
 
 Credentials are loaded through `app/config.py`; do not hardcode them in Python files.
@@ -85,7 +91,19 @@ GET    /api/admin/map-points
 GET    /api/admin/nearby-complaints
 GET    /api/admin/hotspots
 GET    /api/admin/analytics
+POST   /api/uploads/images
+DELETE /api/uploads/images
 ```
+
+## Cloudinary Setup
+
+1. Create a Cloudinary account.
+2. Copy `.env.example` to `.env`.
+3. Add `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`.
+4. Keep `CLOUDINARY_UPLOAD_FOLDER=mana-hyderabad/complaints` unless you want a different folder.
+5. Restart FastAPI after changing environment variables.
+
+Never expose `CLOUDINARY_API_SECRET` to the frontend. Browser uploads go to FastAPI first, and FastAPI uploads to Cloudinary.
 
 ## Quick API Test
 
@@ -122,6 +140,14 @@ Hotspots:
 
 ```bash
 curl "http://127.0.0.1:8000/api/admin/hotspots?radius_meters=300&min_complaints=3"
+```
+
+Upload image:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/uploads/images" \
+  -H "accept: application/json" \
+  -F "file=@test-assets/sample-garbage.jpg"
 ```
 
 ## Seed Data
@@ -170,9 +196,45 @@ Then run:
 
 ```bash
 python scripts/verify_database_flow.py
+python scripts/verify_upload_flow.py
 ```
 
-The script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
+The database script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
+
+The upload script posts `test-assets/sample-garbage.jpg` to `/api/uploads/images`, submits a complaint with the returned `photoUrl`, retrieves the complaint, and verifies the stored `photoUrl`.
+
+## Upload Validation
+
+- Accepts JPEG, PNG, and WEBP only.
+- Rejects empty files.
+- Rejects malformed images using Pillow.
+- Rejects files larger than `MAX_UPLOAD_SIZE_MB`.
+- Stores only the Cloudinary `secure_url` in PostgreSQL as `photo_url`.
+- Does not store raw file bytes in PostgreSQL.
+
+## Frontend Manual QA
+
+Desktop:
+
+1. Open `/report`.
+2. Select an image.
+3. Confirm preview appears.
+4. Upload the image.
+5. Replace image.
+6. Remove image.
+7. Skip image.
+8. Submit complaint.
+9. Track complaint.
+10. Open admin complaint detail and confirm the image appears.
+
+Mobile:
+
+1. Open `/report`.
+2. Tap `Take a Photo`.
+3. Capture an image where camera capture is supported.
+4. Confirm preview appears.
+5. Upload and submit complaint.
+6. Verify the admin complaint image display.
 
 ## Frontend Integration
 
@@ -187,7 +249,7 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No file upload endpoint yet; `photoUrl` is stored as a string.
 - No LLM, translation, ASR/TTS, computer vision, or vector duplicate detection yet.
+- One primary image per complaint for the MVP. Multiple images can be added later with a separate image table.
 - Hotspot detection is intentionally simple: locality-category grouping with configurable thresholds.
 - Ward analysis stores supplied ward fields only. GeoJSON point-in-polygon ward mapping is a future integration point.

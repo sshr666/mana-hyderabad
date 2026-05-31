@@ -16,6 +16,7 @@ import type {
   Hotspot,
   MapPoint,
   NearbyComplaint,
+  UploadedImageResponse,
   SupportedLanguage,
   ComplaintAnalysisRequest,
   ComplaintUpdatePayload
@@ -272,9 +273,45 @@ export async function getHotspots(
   );
 }
 
+export async function uploadComplaintImage(file: File, signal?: AbortSignal): Promise<UploadedImageResponse> {
+  if (!file || file.size === 0) throw new ApiClientError("Uploaded image is empty.");
+  const formData = new FormData();
+  formData.append("file", file);
+  return withMockFallback(
+    async () => {
+      const response = await fetch(buildUrl("/api/uploads/images"), {
+        method: "POST",
+        body: formData,
+        signal,
+        cache: "no-store"
+      });
+      const text = await response.text();
+      const data = text ? parseJson(text) : null;
+      if (!response.ok) throw new ApiClientError(extractErrorMessage(data, response.status), response.status);
+      if (!data || typeof data !== "object" || !("photoUrl" in data)) {
+        throw new ApiClientError("Upload response did not include an image URL.");
+      }
+      return data as UploadedImageResponse;
+    },
+    () => ({
+      photoUrl: URL.createObjectURL(file),
+      publicId: "mock-upload",
+      bytes: file.size
+    })
+  );
+}
+
+export async function deleteTemporaryImage(publicId: string, signal?: AbortSignal): Promise<{publicId: string; deleted: boolean}> {
+  return requestJson<{publicId: string; deleted: boolean}>("/api/uploads/images", {
+    method: "DELETE",
+    body: {publicId},
+    signal
+  });
+}
+
 async function requestJson<T>(
   path: string,
-  options: {method?: "GET" | "POST" | "PATCH"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+  options: {method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
 ): Promise<T> {
   const response = await fetchJson<T>(path, options);
   if (response === null) throw new ApiClientError("Backend returned an empty response.");
@@ -283,7 +320,7 @@ async function requestJson<T>(
 
 async function fetchJson<T>(
   path: string,
-  options: {method?: "GET" | "POST" | "PATCH"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
+  options: {method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; query?: QueryParams; signal?: AbortSignal} = {}
 ): Promise<T | null> {
   const url = buildUrl(path, options.query);
   let response: Response;

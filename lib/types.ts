@@ -175,6 +175,15 @@ export interface Hotspot {
   latestComplaintAt: string;
 }
 
+export interface UploadedImageResponse {
+  photoUrl: string;
+  publicId: string;
+  width?: number | null;
+  height?: number | null;
+  format?: string | null;
+  bytes?: number | null;
+}
+
 export interface AdminAnalyticsResponse {
   openComplaints: number;
   highPriorityIssues: number;

@@ -88,8 +88,16 @@ export function ComplaintDetailPanel({complaint, duplicates}: {complaint: Compla
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Uploaded Image</p>
               {complaint.photoUrl ? (
-                <div className="relative h-72 overflow-hidden rounded-xl border">
-                  <Image src={complaint.photoUrl} alt="Uploaded complaint evidence" fill className="object-cover" />
+                <div className="space-y-2">
+                  <div className="relative h-72 overflow-hidden rounded-xl border">
+                    <Image src={complaint.photoUrl} alt="Uploaded complaint evidence" fill className="object-cover" />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+                    <span>Image submitted by citizen. Field verification may still be required.</span>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={complaint.photoUrl} target="_blank">Open Full Image</Link>
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex h-40 items-center justify-center rounded-xl border bg-secondary/50 text-sm text-muted-foreground">

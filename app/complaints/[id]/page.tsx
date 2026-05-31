@@ -41,6 +41,18 @@ export default async function ComplaintStatusPage({params}: {params: Promise<{id
           <StatusStepper status={complaint.status} />
 
           <section className="rounded-xl border bg-secondary/40 p-4">
+            <h2 className="font-semibold">Complaint Photo</h2>
+            {complaint.photoUrl ? (
+              <div className="mt-3 overflow-hidden rounded-lg border bg-card">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={complaint.photoUrl} alt={`Photo submitted for complaint ${complaint.id}`} className="max-h-96 w-full object-cover" />
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">No image uploaded.</p>
+            )}
+          </section>
+
+          <section className="rounded-xl border bg-secondary/40 p-4">
             <h2 className="font-semibold">{t("track.updates")}</h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li>Complaint submitted</li>

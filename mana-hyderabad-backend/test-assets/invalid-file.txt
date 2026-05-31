@@ -1,0 +1,1 @@
+This is not an image and should be rejected by the upload endpoint.

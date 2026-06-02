@@ -1,8 +1,14 @@
-# Mana Hyderabad: AI-Powered Civic Complaint Copilot
+# Mana Hyderabad
+
+## Live Deployment
+
+**Frontend Application:** [Open Mana Hyderabad](https://mana-hyderabad.vercel.app/)
+
+**Backend Health Check:** Public backend URL not configured in this repository yet.
+
+**Backend API Documentation:** Public backend URL not configured in this repository yet.
 
 Mana Hyderabad is a multilingual civic-tech platform that helps residents report civic issues quickly and helps municipal teams prioritise complaints intelligently.
-
-- **Website Link**: https://mana-hyderabad.vercel.app/
 
 **License:** GNU Affero General Public License v3.0 or later. See [LICENSE](LICENSE).
 
@@ -14,7 +20,7 @@ This repository is organised as a small monorepo:
 .
 ├── app/                         # Next.js frontend routes
 ├── components/                  # Frontend UI components
-├── lib/                         # Frontend types, mock API boundary, utilities
+├── lib/                         # Frontend types, API boundary, utilities
 ├── messages/                    # Frontend translations
 ├── mana-hyderabad-backend/      # FastAPI backend, Alembic, PostGIS config
 ├── .specify/                    # Spec Kit project memory and templates
@@ -31,10 +37,11 @@ cp .env.example .env.local
 npm run dev
 ```
 
-To use mock frontend data, leave `NEXT_PUBLIC_API_BASE_URL` unset. To connect the frontend to the FastAPI backend, set:
+Mock fallback is disabled by default and should remain disabled in production. To connect the frontend to the FastAPI backend, set:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_ENABLE_MOCK_FALLBACK=false
 ```
 
 Run the backend from `mana-hyderabad-backend/`:

@@ -30,7 +30,7 @@ export default function TrackPage() {
     formState: { errors }
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { reference: "HYD-SAN-0142" }
+    defaultValues: { reference: "" }
   });
 
   return (

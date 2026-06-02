@@ -16,10 +16,8 @@ const routes = [
   "/home",
   "/report",
   "/track",
-  "/complaints/HYD-SAN-0142",
   "/admin",
   "/admin/complaints",
-  "/admin/complaints/HYD-SAN-0142",
   "/admin/map",
   "/admin/analytics",
   "/admin/settings",
@@ -115,7 +113,7 @@ export default async function QAPage() {
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span>API base URL</span>
-              <Badge>{mode.baseUrl}</Badge>
+              <Badge>{mode.baseUrl || "Not configured"}</Badge>
             </div>
             <div className="flex justify-between">
               <span>Mode</span>

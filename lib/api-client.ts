@@ -35,11 +35,7 @@ import type {
   DetectedObject
 } from "@/lib/types";
 
-const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(
-  /\/$/,
-  ""
-);
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
 const ENABLE_MOCK_FALLBACK = process.env.NEXT_PUBLIC_ENABLE_MOCK_FALLBACK === "true";
 
 export class ApiClientError extends Error {
@@ -615,6 +611,11 @@ async function fetchJson<T>(
 }
 
 function buildUrl(path: string, query?: QueryParams): string {
+  if (!API_BASE_URL) {
+    throw new ApiClientError(
+      "Backend API URL is not configured. Set NEXT_PUBLIC_API_BASE_URL to the deployed FastAPI backend."
+    );
+  }
   const url = new URL(path, API_BASE_URL);
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "")

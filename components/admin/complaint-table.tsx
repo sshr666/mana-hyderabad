@@ -28,8 +28,8 @@ export function ComplaintTable({
   }
 
   return (
-    <div className="rounded-xl border bg-card">
-      <Table>
+    <div className="overflow-x-auto rounded-xl border bg-card">
+      <Table className="min-w-[920px]">
         <TableHeader>
           <TableRow>
             <TableHead>Reference ID</TableHead>

@@ -4,6 +4,7 @@ out
 dist
 coverage
 .turbo
+*.tsbuildinfo
 .venv
 __pycache__
 *.pyc

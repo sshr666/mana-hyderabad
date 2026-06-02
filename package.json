@@ -21,11 +21,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "knip": "knip",
+    "changelog": "git-cliff --config cliff.toml -o CHANGELOG.md",
     "audit:frontend": "npm audit --audit-level=high",
     "audit:backend": "cd mana-hyderabad-backend && .venv/bin/pip-audit -r requirements.txt --no-deps --disable-pip",
     "prepare": "husky"

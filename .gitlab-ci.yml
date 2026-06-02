@@ -1,7 +1,11 @@
 stages:
-  - quality
+  - lint
+  - format
+  - type_check
   - test
+  - coverage
   - build
+  - changelog
   - security
 
 variables:
@@ -14,18 +18,45 @@ cache:
     - .cache/pip
     - .cache/npm
 
-frontend_quality:
+lint:
   image: node:20
-  stage: quality
+  stage: lint
+  script:
+    - npm ci
+    - npm run lint
+
+format:
+  image: node:20
+  stage: format
   script:
     - npm ci
     - npm run format:check
-    - npm run lint
-    - npm run knip || true
+
+type_check:
+  image: node:20
+  stage: type_check
+  script:
+    - npm ci
+    - npm run typecheck
+
+quality:
+  image: node:20
+  stage: lint
+  allow_failure: true
+  script:
+    - npm ci
+    - npm run knip
 
 frontend_tests:
   image: node:20
   stage: test
+  script:
+    - npm ci
+    - npm test
+
+coverage:
+  image: node:20
+  stage: coverage
   script:
     - npm ci
     - npm run test:coverage
@@ -41,6 +72,14 @@ frontend_build:
   script:
     - npm ci
     - npm run build
+
+changelog:
+  image:
+    name: orhunp/git-cliff:latest
+    entrypoint: [""]
+  stage: changelog
+  script:
+    - git-cliff --config cliff.toml --unreleased --strip header
 
 backend_tests:
   image: python:3.11

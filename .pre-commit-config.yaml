@@ -12,9 +12,19 @@ repos:
       - id: gitleaks
   - repo: local
     hooks:
-      - id: frontend-format-check
-        name: frontend format check
+      - id: format
+        name: format
         entry: npm run format:check
+        language: system
+        pass_filenames: false
+      - id: lint
+        name: lint
+        entry: npm run lint
+        language: system
+        pass_filenames: false
+      - id: type-check
+        name: type check
+        entry: npm run typecheck
         language: system
         pass_filenames: false
       - id: frontend-tests

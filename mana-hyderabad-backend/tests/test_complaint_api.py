@@ -28,7 +28,7 @@ def test_analyse_endpoint_classifies_mixed_language_waterlogging():
     assert response.status_code == 200
     assert body["category"] == "WATERLOGGING"
     assert body["locationText"] == "Gachibowli signal"
-    assert body["missingFields"] == ["latitude", "longitude"]
+    assert body["missingFields"] == ["gps_location"]
 
 
 def test_submit_validation_rejects_empty_text():

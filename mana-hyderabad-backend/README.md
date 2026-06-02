@@ -41,6 +41,17 @@ BHASHINI_SPEECH_CACHE_TTL_SECONDS=3600
 MAX_AUDIO_SIZE_MB=10
 MAX_AUDIO_DURATION_SECONDS=120
 ALLOWED_AUDIO_TYPES=audio/webm,audio/wav,audio/mpeg,audio/mp4,audio/ogg
+ENABLE_LLM_ANALYSIS=true
+LLM_PROVIDER=openai_compatible
+LLM_API_KEY=
+LLM_BASE_URL=
+LLM_MODEL=
+LLM_TIMEOUT_SECONDS=20
+LLM_MAX_RETRIES=2
+LLM_TEMPERATURE=0
+LLM_MAX_OUTPUT_TOKENS=800
+ENABLE_RULE_FALLBACK=true
+ENABLE_LLM_JSON_MODE=true
 ```
 
 Credentials are loaded through `app/config.py`; do not hardcode them in Python files.
@@ -109,6 +120,51 @@ POST   /api/translation/translate
 POST   /api/speech/transcribe
 POST   /api/speech/synthesize
 ```
+
+## LLM Analysis Flow
+
+Complaint analysis uses the multilingual normalization layer and a configurable OpenAI-compatible LLM endpoint:
+
+```text
+Citizen complaint
+→ translation
+→ normalized English
+→ LLM structured extraction
+→ Pydantic validation
+→ deterministic safety guardrails
+→ keyword fallback when needed
+→ frontend review
+```
+
+The LLM is advisory only. Every response is marked as requiring field verification. The model cannot resolve complaints, promise response times, merge duplicates, permanently assign teams, or write directly to the database without validation.
+
+## LLM Provider Setup
+
+Configure either a hosted OpenAI-compatible API or a local instruct model exposed through an OpenAI-compatible endpoint:
+
+```env
+ENABLE_LLM_ANALYSIS=true
+LLM_PROVIDER=openai_compatible
+LLM_API_KEY=
+LLM_BASE_URL=http://127.0.0.1:11434
+LLM_MODEL=
+LLM_TIMEOUT_SECONDS=20
+LLM_MAX_RETRIES=2
+LLM_TEMPERATURE=0
+LLM_MAX_OUTPUT_TOKENS=800
+ENABLE_RULE_FALLBACK=true
+ENABLE_LLM_JSON_MODE=true
+```
+
+`LLM_API_KEY` is optional for local endpoints that do not require authentication. Never expose it to the frontend.
+
+Safety behavior:
+
+- Complaint text is treated as untrusted data.
+- LLM output must be strict JSON and pass Pydantic validation.
+- Unknown categories, priorities, departments, malformed JSON, empty responses, timeouts, 429s, and 5xx responses fall back to deterministic keyword rules.
+- Guardrails can raise priority or correct departments for electrical hazards, open manholes, severe flooding, contaminated drinking water, and garbage blocking drains.
+- Emergency priority is never reduced automatically.
 
 ## Map Setup
 
@@ -258,6 +314,7 @@ python scripts/verify_geospatial_flow.py
 python scripts/verify_upload_flow.py
 python scripts/verify_translation_flow.py
 python scripts/verify_speech_flow.py
+python scripts/verify_llm_analysis_flow.py
 ```
 
 The database script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
@@ -418,7 +475,11 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No LLM, computer vision, or vector duplicate detection yet.
+- No computer vision or vector duplicate detection yet.
+- LLM output requires human verification and can misunderstand ambiguous complaints.
+- Fallback keyword rules remain active and may be less nuanced than model analysis.
+- Admin summaries are stored in the existing concise `reasoning_summary` field until a dedicated migration is added.
+- No automatic resolution, duplicate merge, response-time promise, or permanent team assignment is performed by AI.
 - BHASHINI ASR/TTS require configured provider pipelines; automated tests mock provider calls.
 - Machine translation requires human verification. Romanised and mixed-language input is best effort until provider-backed translation is configured.
 - One primary image per complaint for the MVP. Multiple images can be added later with a separate image table.

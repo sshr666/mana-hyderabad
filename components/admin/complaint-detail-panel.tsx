@@ -194,7 +194,23 @@ export function ComplaintDetailPanel({
               value={complaint.subcategory.replaceAll("_", " ")}
             />
             <Field label="Department" value={String(complaint.department).replaceAll("_", " ")} />
-            <Field label="Analysis Source" value={complaint.analysisSource ?? "Not recorded"} />
+            <Field label="Analysis Source" value={formatAnalysisSource(complaint.analysisSource)} />
+            <Field
+              label="Admin Summary"
+              value={
+                complaint.adminSummary ??
+                complaint.reasoningSummary ??
+                "No AI-assisted admin summary was recorded."
+              }
+            />
+            <Field
+              label="Applied Rules"
+              value={
+                complaint.guardrailsApplied?.length
+                  ? complaint.guardrailsApplied.join(", ").replaceAll("_", " ")
+                  : "No deterministic safety overrides recorded."
+              }
+            />
             <div>
               <p className="text-sm font-medium text-muted-foreground">Suggested Priority</p>
               <Badge className={priorityTone(complaint.priority)}>{complaint.priority}</Badge>
@@ -210,8 +226,7 @@ export function ComplaintDetailPanel({
                 <AlertTriangle className="h-4 w-4" /> AI recommendations require human verification.
               </div>
               <p className="mt-2">
-                {complaint.reasoningSummary ??
-                  "Field verification is required before operational closure."}
+                AI-assisted recommendation. Field verification required before operational closure.
               </p>
             </div>
           </CardContent>
@@ -337,6 +352,13 @@ export function ComplaintDetailPanel({
       </Card>
     </div>
   );
+}
+
+function formatAnalysisSource(source?: string | null): string {
+  if (source === "LLM_WITH_GUARDRAILS") return "LLM with safety guardrails";
+  if (source === "LLM") return "LLM";
+  if (source === "FALLBACK_RULES") return "Fallback rules";
+  return source ?? "Not recorded";
 }
 
 function Field({ label, value }: { label: string; value: string }) {

@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.schemas.analysis import ComplaintAnalysisRequest, ComplaintAnalysisResponse
 from app.database import get_db
 from app.schemas.complaint import (
-    ComplaintAnalysisRequest,
-    ComplaintAnalysisResponse,
     ComplaintCreate,
     ComplaintResponse,
 )

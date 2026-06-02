@@ -46,6 +46,17 @@ class Settings(BaseSettings):
         default="audio/webm,audio/wav,audio/mpeg,audio/mp4,audio/ogg",
         alias="ALLOWED_AUDIO_TYPES",
     )
+    enable_llm_analysis: bool = Field(default=True, alias="ENABLE_LLM_ANALYSIS")
+    llm_provider: str = Field(default="openai_compatible", alias="LLM_PROVIDER")
+    llm_api_key: str = Field(default="", alias="LLM_API_KEY")
+    llm_base_url: str = Field(default="", alias="LLM_BASE_URL")
+    llm_model: str = Field(default="", alias="LLM_MODEL")
+    llm_timeout_seconds: int = Field(default=20, alias="LLM_TIMEOUT_SECONDS")
+    llm_max_retries: int = Field(default=2, alias="LLM_MAX_RETRIES")
+    llm_temperature: float = Field(default=0, alias="LLM_TEMPERATURE")
+    llm_max_output_tokens: int = Field(default=800, alias="LLM_MAX_OUTPUT_TOKENS")
+    enable_rule_fallback: bool = Field(default=True, alias="ENABLE_RULE_FALLBACK")
+    enable_llm_json_mode: bool = Field(default=True, alias="ENABLE_LLM_JSON_MODE")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

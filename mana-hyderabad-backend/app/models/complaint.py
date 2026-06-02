@@ -59,6 +59,7 @@ class SupportedLanguage(str, enum.Enum):
 class AnalysisSource(str, enum.Enum):
     LLM = "LLM"
     FALLBACK_RULES = "FALLBACK_RULES"
+    LLM_WITH_GUARDRAILS = "LLM_WITH_GUARDRAILS"
     MANUAL = "MANUAL"
 
 

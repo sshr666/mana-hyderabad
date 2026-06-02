@@ -30,7 +30,7 @@ export type ComplaintDepartment =
   | "MANUAL_REVIEW";
 
 export type SupportedLanguage = "en" | "te" | "hi" | "ur";
-export type AnalysisSource = "LLM" | "FALLBACK_RULES" | "MANUAL";
+export type AnalysisSource = "LLM" | "FALLBACK_RULES" | "LLM_WITH_GUARDRAILS" | "MANUAL";
 
 export interface Complaint {
   id: string;
@@ -57,6 +57,8 @@ export interface Complaint {
   analysisSource?: AnalysisSource | null;
   requiresHumanVerification?: boolean;
   reasoningSummary?: string | null;
+  adminSummary?: string | null;
+  guardrailsApplied?: string[];
   translationProvider?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -66,6 +68,9 @@ export interface Complaint {
 export interface ComplaintAnalysisRequest {
   text: string;
   language: SupportedLanguage;
+  normalizedEnglishText?: string | null;
+  originalLanguage?: string | null;
+  detectedLanguage?: string | null;
   photoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -74,21 +79,25 @@ export interface ComplaintAnalysisRequest {
 }
 
 export interface ComplaintAnalysisResponse {
+  originalText: string;
   normalizedEnglishText: string;
+  originalLanguage?: string | null;
   detectedLanguage?: string | null;
   category: ComplaintCategory;
   subcategory: string;
   department?: ComplaintDepartment | null;
   priority: ComplaintPriority;
   locationText: string | null;
-  missingFields: Array<"latitude" | "longitude" | "landmark" | "photo">;
+  missingFields: string[];
   followUpQuestion: string | null;
-  citizenReply?: string | null;
-  reasoningSummary?: string | null;
-  requiresHumanVerification?: boolean;
-  analysisSource?: AnalysisSource | null;
+  citizenReply: string;
+  adminSummary: string;
+  reasoningSummary: string;
+  requiresHumanVerification: boolean;
+  analysisSource: Exclude<AnalysisSource, "MANUAL">;
   translationProvider?: string | null;
   issueTitle: string;
+  guardrailsApplied: string[];
   detectedLabels?: string[];
 }
 

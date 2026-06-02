@@ -69,6 +69,8 @@ interface BackendComplaint {
   translationProvider?: string | null;
   requiresHumanVerification?: boolean;
   reasoningSummary?: string | null;
+  adminSummary?: string | null;
+  guardrailsApplied?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -128,6 +130,7 @@ export async function analyseComplaint(
         body: request,
         signal
       }).then((response) => ({
+        originalText: response.originalText ?? request.text,
         normalizedEnglishText: response.normalizedEnglishText ?? request.text,
         detectedLanguage: response.detectedLanguage ?? request.language,
         category: response.category ?? "OTHER",
@@ -138,7 +141,13 @@ export async function analyseComplaint(
         missingFields:
           response.missingFields ?? inferMissingFields(request.latitude, request.longitude),
         followUpQuestion: response.followUpQuestion ?? null,
-        citizenReply: response.citizenReply ?? response.followUpQuestion ?? null,
+        citizenReply:
+          response.citizenReply ??
+          response.followUpQuestion ??
+          "We identified a possible civic issue. Field verification is required.",
+        adminSummary:
+          response.adminSummary ??
+          `${titleFromParts(response.subcategory, response.category)} reported. Field verification is required.`,
         reasoningSummary:
           response.reasoningSummary ??
           `${titleFromParts(response.subcategory, response.category)} reported.`,
@@ -146,6 +155,7 @@ export async function analyseComplaint(
         analysisSource: response.analysisSource ?? "FALLBACK_RULES",
         translationProvider: response.translationProvider ?? null,
         issueTitle: response.issueTitle ?? titleFromParts(response.subcategory, response.category),
+        guardrailsApplied: response.guardrailsApplied ?? [],
         detectedLabels: response.detectedLabels ?? []
       })),
     () => mockAnalyseComplaint(request)
@@ -579,6 +589,8 @@ function mapBackendComplaint(complaint: BackendComplaint): Complaint {
     analysisSource: complaint.analysisSource ?? null,
     requiresHumanVerification: complaint.requiresHumanVerification ?? true,
     reasoningSummary: complaint.reasoningSummary ?? null,
+    adminSummary: complaint.adminSummary ?? null,
+    guardrailsApplied: complaint.guardrailsApplied ?? [],
     translationProvider: complaint.translationProvider ?? null,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt
@@ -674,6 +686,7 @@ function mockAnalyseComplaint(request: ComplaintAnalysisRequest): ComplaintAnaly
         ? "POTHOLE"
         : "MISCELLANEOUS";
   return {
+    originalText: request.text,
     normalizedEnglishText: request.text,
     detectedLanguage: request.language,
     category,
@@ -684,21 +697,19 @@ function mockAnalyseComplaint(request: ComplaintAnalysisRequest): ComplaintAnaly
     missingFields: inferMissingFields(request.latitude, request.longitude),
     followUpQuestion: "Please share the exact location or select it on the map.",
     citizenReply: "Please share the exact location so the issue can be reported accurately.",
+    adminSummary: `${titleFromParts(subcategory, category)} reported. Field verification is required.`,
     reasoningSummary: `${titleFromParts(subcategory, category)} reported.`,
     requiresHumanVerification: true,
     analysisSource: "FALLBACK_RULES",
     issueTitle: titleFromParts(subcategory, category),
+    guardrailsApplied: [],
     detectedLabels: []
   };
 }
 
-function inferMissingFields(
-  latitude: number | null,
-  longitude: number | null
-): Array<"latitude" | "longitude"> {
-  const fields: Array<"latitude" | "longitude"> = [];
-  if (latitude === null) fields.push("latitude");
-  if (longitude === null) fields.push("longitude");
+function inferMissingFields(latitude: number | null, longitude: number | null): string[] {
+  const fields: string[] = [];
+  if (latitude === null || longitude === null) fields.push("gps_location");
   return fields;
 }
 

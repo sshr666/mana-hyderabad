@@ -83,7 +83,7 @@ export default function ReportPage() {
         detectedLabels: labels,
         analysisSource: analysis.analysisSource ?? "FALLBACK_RULES",
         requiresHumanVerification: analysis.requiresHumanVerification ?? true,
-        reasoningSummary: analysis.reasoningSummary ?? null
+        reasoningSummary: analysis.adminSummary ?? analysis.reasoningSummary ?? null
       });
       setSubmitted(result);
       setStep("submitted");
@@ -137,13 +137,29 @@ export default function ReportPage() {
                 <div className="space-y-3 rounded-xl bg-secondary/50 p-4">
                   <Detail label={t("report.issue")} value={analysis.issueTitle} />
                   <Detail
+                    label={t("report.department")}
+                    value={(analysis.department ?? "MANUAL_REVIEW").replaceAll("_", " ")}
+                  />
+                  <Detail label={t("report.priority")} value={analysis.priority} />
+                  <Detail
                     label={t("report.location")}
                     value={analysis.locationText ?? t("report.notProvided")}
+                  />
+                  <Detail
+                    label={t("report.missingDetails")}
+                    value={
+                      analysis.missingFields.length
+                        ? analysis.missingFields.join(", ").replaceAll("_", " ")
+                        : t("report.notAdded")
+                    }
                   />
                   <Detail
                     label={t("report.photo")}
                     value={photoUrl ? "Added" : t("report.notAdded")}
                   />
+                </div>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  {t("report.aiVerificationNote")}
                 </div>
                 {analysis.citizenReply && (
                   <div className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">

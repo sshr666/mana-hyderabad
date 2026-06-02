@@ -10,7 +10,7 @@ from app.config import get_settings
 
 def database_available() -> bool:
     try:
-        engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+        engine = create_engine(get_settings().sqlalchemy_database_url, pool_pre_ping=True)
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         return True
@@ -26,7 +26,7 @@ requires_database = pytest.mark.skipif(
 
 @pytest.fixture()
 def db_session():
-    engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+    engine = create_engine(get_settings().sqlalchemy_database_url, pool_pre_ping=True)
     TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     session = TestingSessionLocal()
     transaction = session.begin()

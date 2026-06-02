@@ -59,6 +59,18 @@ Use the blueprint when creating the Render resources, or create the same resourc
    /api/health
    ```
 
+## Common Render Failure Fixes
+
+If `mana-hyderabad-api` fails with a database driver error such as `No module named psycopg2`, use the Render PostgreSQL connection string as `DATABASE_URL` anyway. The backend normalizes Render-style `postgres://` and `postgresql://` URLs to the SQLAlchemy `postgresql+psycopg://` driver form at runtime.
+
+If the build fails while installing `ultralytics`, `torch`, or other large ML packages, deploy the stable core backend first with optional vision disabled:
+
+```env
+ENABLE_VISION_ANALYSIS=false
+```
+
+Then either keep using the current `requirements.txt` on a larger Render instance, or create a lightweight production requirements file that excludes `ultralytics` until the computer-vision model is ready for production.
+
 ## Required Backend Environment Variables
 
 Set these in Render. Do not commit values.

@@ -90,6 +90,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @property
+    def sqlalchemy_database_url(self) -> str:
+        return normalize_database_url(self.database_url)
+
+    @property
     def cors_origins(self) -> List[str]:
         raw = self.frontend_origins.strip()
         if raw.startswith("[") and raw.endswith("]"):
@@ -124,3 +128,11 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def normalize_database_url(database_url: str) -> str:
+    if database_url.startswith("postgres://"):
+        return database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return database_url

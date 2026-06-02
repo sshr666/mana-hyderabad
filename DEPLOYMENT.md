@@ -27,6 +27,7 @@ The repository includes `render.yaml` with:
 - Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - Health-check path: `/api/health`
+- Python runtime: `python-3.11.11` from `mana-hyderabad-backend/runtime.txt`
 
 Use the blueprint when creating the Render resources, or create the same resources manually in the Render dashboard.
 
@@ -59,9 +60,21 @@ Use the blueprint when creating the Render resources, or create the same resourc
    /api/health
    ```
 
+8. Confirm Render detects Python `3.11.11` from:
+
+   ```text
+   mana-hyderabad-backend/runtime.txt
+   ```
+
 ## Common Render Failure Fixes
 
 If `mana-hyderabad-api` fails with a database driver error such as `No module named psycopg2`, use the Render PostgreSQL connection string as `DATABASE_URL` anyway. The backend normalizes Render-style `postgres://` and `postgresql://` URLs to the SQLAlchemy `postgresql+psycopg://` driver form at runtime.
+
+If Render selects Python `3.14` and the build fails while preparing `pydantic-core`, redeploy after confirming `mana-hyderabad-backend/runtime.txt` contains:
+
+```text
+python-3.11.11
+```
 
 If the build fails while installing `ultralytics`, `torch`, or other large ML packages, deploy the stable core backend first with optional vision disabled:
 

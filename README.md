@@ -17,6 +17,8 @@ This repository is organised as a small monorepo:
 ├── lib/                         # Frontend types, mock API boundary, utilities
 ├── messages/                    # Frontend translations
 ├── mana-hyderabad-backend/      # FastAPI backend, Alembic, PostGIS config
+├── .specify/                    # Spec Kit project memory and templates
+├── specs/                       # Spec Kit feature specifications and plans
 ├── package.json                 # Frontend dependencies and scripts
 └── README.md
 ```
@@ -52,6 +54,26 @@ uvicorn app.main:app --reload
 Frontend: `http://localhost:3000`
 
 Backend Swagger: `http://127.0.0.1:8000/docs`
+
+## Spec Kit Workflow
+
+This repository includes GitHub Spec Kit artifacts for spec-driven development.
+
+Current Spec Kit files:
+
+- `.specify/memory/constitution.md` — project principles and quality rules
+- `.specify/templates/` — local spec, plan, and task templates
+- `specs/001-mana-hyderabad-platform/` — baseline platform specification, implementation plan, tasks, data model, research notes, and quickstart
+
+The team workflow follows:
+
+```text
+/speckit.constitution → /speckit.specify → /speckit.clarify
+→ /speckit.plan → /speckit.tasks → /speckit.analyze
+→ /speckit.implement
+```
+
+For future phases, create a new folder under `specs/` before implementing code. Write requirements in `spec.md` first, add technology choices in `plan.md`, then break work into `tasks.md`.
 
 ---
 

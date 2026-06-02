@@ -11,6 +11,8 @@ Mana Hyderabad is a civic-tech monorepo.
 - Database: PostgreSQL with PostGIS via `mana-hyderabad-backend/docker-compose.yml`.
 - Frontend API boundary: `lib/api-client.ts`.
 - Backend API routers: `mana-hyderabad-backend/app/api/`.
+- Spec Kit constitution: `.specify/memory/constitution.md`.
+- Spec Kit phase specs: `specs/`.
 
 ## Rules for Agents
 
@@ -22,6 +24,8 @@ Mana Hyderabad is a civic-tech monorepo.
 - Treat AI analysis and uploaded images as requiring human verification.
 - Use migrations for database schema changes.
 - Run relevant tests before reporting completion.
+- For new product phases, update or create Spec Kit artifacts before implementation: `spec.md`, `plan.md`, and `tasks.md`.
+- Keep requirements in `spec.md` focused on WHAT and WHY; put technology choices in `plan.md`.
 
 ## Useful Commands
 
@@ -44,6 +48,16 @@ pip install -r requirements.txt
 docker compose up -d
 alembic upgrade head
 pytest
+```
+
+Spec Kit:
+
+```bash
+# Optional: install the CLI if the team standardizes on a version.
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+
+# Current project artifacts live here:
+ls .specify/memory specs/001-mana-hyderabad-platform
 ```
 
 ## Local URLs

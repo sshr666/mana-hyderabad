@@ -7,6 +7,15 @@ out
 .env
 .env.local
 *.log
+*.pyc
+**/__pycache__
+**/.pytest_cache
 mana-hyderabad-backend/.venv
 mana-hyderabad-backend/__pycache__
 mana-hyderabad-backend/.pytest_cache
+mana-hyderabad-backend/test-assets
+mana-hyderabad-backend/cv/data
+mana-hyderabad-backend/cv/runs
+mana-hyderabad-backend/cv/models/*.pt
+mana-hyderabad-backend/cv/models/*.onnx
+mana-hyderabad-backend/cv/models/*.torchscript

@@ -4,9 +4,7 @@
 
 **Frontend Application:** [Open Mana Hyderabad](https://mana-hyderabad.vercel.app/)
 
-**Backend Health Check:** Public backend URL not configured in this repository yet.
-
-**Backend API Documentation:** Public backend URL not configured in this repository yet.
+**Backend Deployment:** Pending public Render service URL
 
 Mana Hyderabad is a multilingual civic-tech platform that helps residents report civic issues quickly and helps municipal teams prioritise complaints intelligently.
 

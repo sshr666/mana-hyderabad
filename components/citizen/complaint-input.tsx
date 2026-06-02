@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { VoiceRecorder } from "@/components/citizen/voice-recorder";
+import { useLocaleSettings } from "@/components/locale-provider";
 
 const schema = z.object({
   text: z.string().min(6, "Please describe the issue.")
@@ -16,6 +17,7 @@ const schema = z.object({
 
 export function ComplaintInput({ onContinue }: { onContinue: (text: string) => void }) {
   const t = useTranslations();
+  const { locale } = useLocaleSettings();
   const [helper, setHelper] = useState<string | null>(null);
   const {
     register,
@@ -32,7 +34,10 @@ export function ComplaintInput({ onContinue }: { onContinue: (text: string) => v
       <Textarea placeholder={t("report.placeholder")} {...register("text")} />
       {errors.text && <p className="text-sm text-destructive">{t("errors.complaintRequired")}</p>}
       <div className="flex flex-wrap gap-2">
-        <VoiceRecorder onTranscript={(text) => setValue("text", text, { shouldValidate: true })} />
+        <VoiceRecorder
+          language={locale}
+          onTranscript={(text) => setValue("text", text, { shouldValidate: true })}
+        />
         <Button
           type="button"
           variant="outline"

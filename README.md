@@ -456,39 +456,39 @@ cd mana-hyderabad
 
 ### Environment variables
 
-Create a `.env` file:
+Frontend environment variables live in `.env.local`:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mana_hyderabad
-LLM_API_KEY=replace_me
-TRANSLATION_API_KEY=replace_me
-STORAGE_URL=replace_me
-STORAGE_API_KEY=replace_me
-NEXT_PUBLIC_MAP_STYLE_URL=replace_me
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_ENABLE_MOCK_FALLBACK=false
+NEXT_PUBLIC_MAP_STYLE_URL=https://demotiles.maplibre.org/style.json
+NEXT_PUBLIC_ENABLE_SPEECH_INPUT=true
+NEXT_PUBLIC_ENABLE_TTS_RESPONSES=false
 ```
 
-Never commit `.env` files or API keys.
+Backend environment variables live in `mana-hyderabad-backend/.env`. Never commit `.env`, `.env.local`, API keys, BHASHINI credentials, Cloudinary secrets, uploaded citizen data, or database dumps.
 
 ### Start PostgreSQL
 
 ```bash
-docker compose up -d db
+cd mana-hyderabad-backend
+docker compose up -d
 ```
 
 ### Start the backend
 
 ```bash
-cd backend
+cd mana-hyderabad-backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
 ### Start the frontend
 
 ```bash
-cd frontend
 npm install
 npm run dev
 ```

@@ -23,7 +23,9 @@ import type {
   ComplaintUpdatePayload,
   LanguageDetectionResponse,
   TranslationRequest,
-  TranslationResponse
+  TranslationResponse,
+  SpeechSynthesisResponse,
+  SpeechTranscriptionResponse
 } from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
@@ -413,6 +415,43 @@ export async function deleteTemporaryImage(
   return requestJson<{ publicId: string; deleted: boolean }>("/api/uploads/images", {
     method: "DELETE",
     body: { publicId },
+    signal
+  });
+}
+
+export async function transcribeComplaintAudio(
+  file: File,
+  language: SupportedLanguage,
+  signal?: AbortSignal
+): Promise<SpeechTranscriptionResponse> {
+  if (!file || file.size === 0) throw new ApiClientError("Audio recording is empty.");
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("language", language);
+  const response = await fetch(buildUrl("/api/speech/transcribe"), {
+    method: "POST",
+    body: formData,
+    signal,
+    cache: "no-store"
+  });
+  const text = await response.text();
+  const data = text ? parseJson(text) : null;
+  if (!response.ok)
+    throw new ApiClientError(extractErrorMessage(data, response.status), response.status);
+  if (!data || typeof data !== "object" || !("transcript" in data)) {
+    throw new ApiClientError("Transcription response did not include transcript text.");
+  }
+  return data as SpeechTranscriptionResponse;
+}
+
+export async function synthesizeCitizenReply(
+  text: string,
+  language: SupportedLanguage,
+  signal?: AbortSignal
+): Promise<SpeechSynthesisResponse> {
+  return requestJson<SpeechSynthesisResponse>("/api/speech/synthesize", {
+    method: "POST",
+    body: { text, language },
     signal
   });
 }

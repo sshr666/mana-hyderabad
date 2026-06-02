@@ -221,6 +221,25 @@ export interface LanguageDetectionResponse {
   analysisSource: string;
 }
 
+export interface SpeechTranscriptionResponse {
+  transcript: string;
+  detectedLanguage?: string | null;
+  requestedLanguage: SupportedLanguage;
+  provider: string;
+  audioDurationSeconds?: number | null;
+  requiresHumanVerification: boolean;
+  fallbackUsed: boolean;
+}
+
+export interface SpeechSynthesisResponse {
+  audioBase64?: string | null;
+  audioUrl?: string | null;
+  language: SupportedLanguage;
+  provider: string;
+  format: string;
+  fallbackUsed: boolean;
+}
+
 export interface AdminAnalyticsResponse {
   openComplaints: number;
   highPriorityIssues: number;

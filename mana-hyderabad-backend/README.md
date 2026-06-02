@@ -2,9 +2,9 @@
 
 FastAPI backend foundation for the Mana Hyderabad civic complaint platform.
 
-This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Cloudinary image uploads, Alembic migrations, seed data, and pytest coverage.
+This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Cloudinary image uploads, multilingual translation support, speech input scaffolding, Alembic migrations, seed data, and pytest coverage.
 
-It intentionally does not include LLMs, translation APIs, speech processing, computer vision, authentication, or pgvector semantic search yet.
+It intentionally does not include LLMs, computer vision, authentication, or pgvector semantic search yet.
 
 ## Setup
 
@@ -30,6 +30,17 @@ CLOUDINARY_API_SECRET=
 CLOUDINARY_UPLOAD_FOLDER=mana-hyderabad/complaints
 MAX_UPLOAD_SIZE_MB=8
 ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp
+ENABLE_SPEECH_INPUT=true
+ENABLE_TTS_RESPONSES=false
+BHASHINI_ASR_PIPELINE_ID=
+BHASHINI_TTS_PIPELINE_ID=
+BHASHINI_SPEECH_CONFIG_URL=
+BHASHINI_SPEECH_TIMEOUT_SECONDS=30
+BHASHINI_SPEECH_MAX_RETRIES=2
+BHASHINI_SPEECH_CACHE_TTL_SECONDS=3600
+MAX_AUDIO_SIZE_MB=10
+MAX_AUDIO_DURATION_SECONDS=120
+ALLOWED_AUDIO_TYPES=audio/webm,audio/wav,audio/mpeg,audio/mp4,audio/ogg
 ```
 
 Credentials are loaded through `app/config.py`; do not hardcode them in Python files.
@@ -93,6 +104,10 @@ GET    /api/admin/hotspots
 GET    /api/admin/analytics
 POST   /api/uploads/images
 DELETE /api/uploads/images
+POST   /api/translation/detect-language
+POST   /api/translation/translate
+POST   /api/speech/transcribe
+POST   /api/speech/synthesize
 ```
 
 ## Map Setup
@@ -242,6 +257,7 @@ python scripts/verify_database_flow.py
 python scripts/verify_geospatial_flow.py
 python scripts/verify_upload_flow.py
 python scripts/verify_translation_flow.py
+python scripts/verify_speech_flow.py
 ```
 
 The database script checks health, submits a complaint, retrieves it, updates status, lists admin complaints, fetches map points, runs nearby search, fetches hotspots, and prints analytics keys.
@@ -299,6 +315,63 @@ Translation endpoints:
 - `POST /api/translation/detect-language`
 - `POST /api/translation/translate`
 
+## Speech Architecture
+
+Speech input uses the existing multilingual complaint pipeline:
+
+```text
+Microphone
+→ browser MediaRecorder
+→ FastAPI multipart upload
+→ BHASHINI ASR
+→ editable transcript
+→ translation
+→ complaint analysis
+→ complaint submission
+```
+
+Optional spoken responses are disabled by default:
+
+```text
+Citizen reply
+→ BHASHINI TTS
+→ Listen to Response
+```
+
+Typed complaint input always remains available. If microphone permission is denied, the browser does not support `MediaRecorder`, or BHASHINI ASR is unavailable, citizens can type the complaint manually.
+
+## BHASHINI Speech Setup
+
+Add speech configuration to `.env`:
+
+```env
+ENABLE_SPEECH_INPUT=true
+ENABLE_TTS_RESPONSES=false
+BHASHINI_ASR_PIPELINE_ID=
+BHASHINI_TTS_PIPELINE_ID=
+BHASHINI_SPEECH_CONFIG_URL=
+BHASHINI_SPEECH_TIMEOUT_SECONDS=30
+BHASHINI_SPEECH_MAX_RETRIES=2
+BHASHINI_SPEECH_CACHE_TTL_SECONDS=3600
+MAX_AUDIO_SIZE_MB=10
+MAX_AUDIO_DURATION_SECONDS=120
+ALLOWED_AUDIO_TYPES=audio/webm,audio/wav,audio/mpeg,audio/mp4,audio/ogg
+```
+
+Reuse `BHASHINI_USER_ID` and `BHASHINI_API_KEY`. Do not expose BHASHINI credentials to the frontend.
+
+Browser notes:
+
+- Microphone access is requested only after the citizen clicks record.
+- Localhost works for development; deployed microphone access normally requires HTTPS.
+- Recording formats vary by browser. The frontend tries WEBM/Opus, WEBM, MP4, then OGG.
+- TTS does not autoplay. Citizens must click `Listen to Response`.
+
+Speech endpoints:
+
+- `POST /api/speech/transcribe`
+- `POST /api/speech/synthesize`
+
 ## Upload Validation
 
 - Accepts JPEG, PNG, and WEBP only.
@@ -345,7 +418,8 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No LLM, ASR/TTS, computer vision, or vector duplicate detection yet.
+- No LLM, computer vision, or vector duplicate detection yet.
+- BHASHINI ASR/TTS require configured provider pipelines; automated tests mock provider calls.
 - Machine translation requires human verification. Romanised and mixed-language input is best effort until provider-backed translation is configured.
 - One primary image per complaint for the MVP. Multiple images can be added later with a separate image table.
 - Hotspot detection is intentionally simple: locality-category grouping with configurable thresholds.

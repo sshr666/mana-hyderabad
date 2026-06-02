@@ -86,6 +86,27 @@
     "englishTranslation": "English ترجمہ",
     "humanVerification": "مشینی ترجمے کے لیے انسانی تصدیق ضروری ہے۔"
   },
+  "speech": {
+    "recordVoice": "وائس شکایت ریکارڈ کریں",
+    "startRecording": "ریکارڈنگ شروع کریں",
+    "stopRecording": "ریکارڈنگ روکیں",
+    "cancelRecording": "ریکارڈنگ منسوخ کریں",
+    "recording": "ریکارڈنگ",
+    "processing": "وائس شکایت پروسیس ہو رہی ہے",
+    "editTranscript": "ٹرانسکرپٹ میں ترمیم کریں",
+    "useThisText": "یہ متن استعمال کریں",
+    "recordAgain": "دوبارہ ریکارڈ کریں",
+    "typeManually": "خود ٹائپ کریں",
+    "permissionDenied": "مائیکروفون اجازت نہیں ملی۔ آپ شکایت خود ٹائپ کر سکتے ہیں۔",
+    "unsupported": "یہ براؤزر وائس ریکارڈنگ سپورٹ نہیں کرتا۔ براہ کرم شکایت ٹائپ کریں۔",
+    "couldNotTranscribe": "آڈیو کو متن میں تبدیل نہیں کیا جا سکا۔ آپ شکایت ٹائپ یا ترمیم کر سکتے ہیں۔",
+    "unavailable": "وائس ریکارڈنگ ابھی دستیاب نہیں ہے۔",
+    "listen": "جواب سنیں",
+    "play": "پلے",
+    "pause": "روکیں",
+    "replay": "دوبارہ چلائیں",
+    "spokenUnavailable": "بولا ہوا جواب دستیاب نہیں"
+  },
   "track": {
     "title": "شکایت ٹریک کریں",
     "label": "شکایت ریفرنس ID",

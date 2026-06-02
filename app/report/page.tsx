@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageChangeButton } from "@/components/citizen/language-change-button";
+import { SpokenResponsePlayer } from "@/components/citizen/spoken-response-player";
 
 type Step = "input" | "analysis" | "location" | "photo" | "review" | "submitted";
 
@@ -147,6 +148,7 @@ export default function ReportPage() {
                 {analysis.citizenReply && (
                   <div className="rounded-xl border bg-background p-4 text-sm text-muted-foreground">
                     {analysis.citizenReply}
+                    <SpokenResponsePlayer text={analysis.citizenReply} language={locale} />
                   </div>
                 )}
                 <div className="flex gap-2">

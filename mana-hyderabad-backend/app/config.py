@@ -32,6 +32,20 @@ class Settings(BaseSettings):
     enable_indic_trans2_fallback: bool = Field(default=False, alias="ENABLE_INDIC_TRANS2_FALLBACK")
     indic_trans2_base_url: str = Field(default="", alias="INDIC_TRANS2_BASE_URL")
     indic_trans2_timeout_seconds: int = Field(default=30, alias="INDIC_TRANS2_TIMEOUT_SECONDS")
+    enable_speech_input: bool = Field(default=True, alias="ENABLE_SPEECH_INPUT")
+    enable_tts_responses: bool = Field(default=False, alias="ENABLE_TTS_RESPONSES")
+    bhashini_asr_pipeline_id: str = Field(default="", alias="BHASHINI_ASR_PIPELINE_ID")
+    bhashini_tts_pipeline_id: str = Field(default="", alias="BHASHINI_TTS_PIPELINE_ID")
+    bhashini_speech_config_url: str = Field(default="", alias="BHASHINI_SPEECH_CONFIG_URL")
+    bhashini_speech_timeout_seconds: int = Field(default=30, alias="BHASHINI_SPEECH_TIMEOUT_SECONDS")
+    bhashini_speech_max_retries: int = Field(default=2, alias="BHASHINI_SPEECH_MAX_RETRIES")
+    bhashini_speech_cache_ttl_seconds: int = Field(default=3600, alias="BHASHINI_SPEECH_CACHE_TTL_SECONDS")
+    max_audio_size_mb: int = Field(default=10, alias="MAX_AUDIO_SIZE_MB")
+    max_audio_duration_seconds: int = Field(default=120, alias="MAX_AUDIO_DURATION_SECONDS")
+    allowed_audio_types: str = Field(
+        default="audio/webm,audio/wav,audio/mpeg,audio/mp4,audio/ogg",
+        alias="ALLOWED_AUDIO_TYPES",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -49,6 +63,14 @@ class Settings(BaseSettings):
     @property
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
+
+    @property
+    def allowed_audio_mime_types(self) -> set[str]:
+        return {item.strip() for item in self.allowed_audio_types.split(",") if item.strip()}
+
+    @property
+    def max_audio_size_bytes(self) -> int:
+        return self.max_audio_size_mb * 1024 * 1024
 
 
 @lru_cache

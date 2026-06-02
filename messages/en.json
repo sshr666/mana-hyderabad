@@ -86,6 +86,27 @@
     "englishTranslation": "English translation",
     "humanVerification": "Machine translation requires human verification."
   },
+  "speech": {
+    "recordVoice": "Record Voice Complaint",
+    "startRecording": "Start Recording",
+    "stopRecording": "Stop Recording",
+    "cancelRecording": "Cancel Recording",
+    "recording": "Recording",
+    "processing": "Processing Voice Complaint",
+    "editTranscript": "Edit Transcript",
+    "useThisText": "Use This Text",
+    "recordAgain": "Record Again",
+    "typeManually": "Type Manually",
+    "permissionDenied": "Microphone permission was denied. You can still type your complaint manually.",
+    "unsupported": "Browser does not support voice recording. Please type your complaint manually.",
+    "couldNotTranscribe": "Could not transcribe audio. You can type or edit your complaint manually.",
+    "unavailable": "Voice recording is unavailable right now.",
+    "listen": "Listen to Response",
+    "play": "Play",
+    "pause": "Pause",
+    "replay": "Replay",
+    "spokenUnavailable": "Spoken response unavailable"
+  },
   "track": {
     "title": "Track Complaint",
     "label": "Complaint reference ID",

@@ -106,6 +106,8 @@ class ComplaintResponse(BaseModel):
     analysis_source: AnalysisSource | None = Field(alias="analysisSource")
     requires_human_verification: bool = Field(alias="requiresHumanVerification")
     reasoning_summary: str | None = Field(alias="reasoningSummary")
+    duplicate_of_reference_id: str | None = Field(default=None, alias="duplicateOfReferenceId")
+    duplicate_resolution_status: str | None = Field(default=None, alias="duplicateResolutionStatus")
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
 
@@ -199,6 +201,9 @@ class AnalyticsResponse(BaseModel):
     high_priority_issues: int = Field(alias="highPriorityIssues")
     resolved_today: int = Field(alias="resolvedToday")
     possible_duplicates: int = Field(default=0, alias="possibleDuplicates")
+    confirmed_duplicates: int = Field(default=0, alias="confirmedDuplicates")
+    rejected_duplicate_suggestions: int = Field(default=0, alias="rejectedDuplicateSuggestions")
+    pending_duplicate_reviews: int = Field(default=0, alias="pendingDuplicateReviews")
     complaints_by_category: list[CategoryCount] = Field(alias="complaintsByCategory")
     complaints_by_date: list[DateCount] = Field(alias="complaintsByDate")
     complaints_by_locality: list[LocalityCount] = Field(alias="complaintsByLocality")

@@ -31,6 +31,12 @@ export type ComplaintDepartment =
 
 export type SupportedLanguage = "en" | "te" | "hi" | "ur";
 export type AnalysisSource = "LLM" | "FALLBACK_RULES" | "LLM_WITH_GUARDRAILS" | "MANUAL";
+export type DuplicateSuggestionStatus =
+  | "PENDING_REVIEW"
+  | "CONFIRMED_DUPLICATE"
+  | "REJECTED"
+  | "DISMISSED";
+export type DuplicateConfidence = "LOW" | "MEDIUM" | "HIGH";
 
 export interface Complaint {
   id: string;
@@ -60,6 +66,8 @@ export interface Complaint {
   adminSummary?: string | null;
   guardrailsApplied?: string[];
   translationProvider?: string | null;
+  duplicateOfReferenceId?: string | null;
+  duplicateResolutionStatus?: "CONFIRMED_DUPLICATE" | "KEEP_SEPARATE" | null;
   createdAt: string;
   updatedAt: string;
   possibleDuplicateIds?: string[];
@@ -142,6 +150,35 @@ export interface ComplaintUpdatePayload {
 
 export type UpdateComplaintRequest = ComplaintUpdatePayload;
 
+export interface DuplicateSuggestion {
+  suggestionId: string;
+  sourceReferenceId: string;
+  candidateReferenceId: string;
+  candidateCategory: ComplaintCategory;
+  candidateStatus: ComplaintStatus;
+  candidateLandmark?: string | null;
+  distanceMeters: number;
+  timeDifferenceHours: number;
+  semanticSimilarity?: number | null;
+  duplicateScore: number;
+  confidenceLabel: DuplicateConfidence;
+  status: DuplicateSuggestionStatus;
+  createdAt?: string;
+}
+
+export interface DuplicateReviewPayload {
+  reviewedBy: string;
+  reviewNote?: string | null;
+}
+
+export interface DuplicateReviewResponse {
+  suggestion: DuplicateSuggestion;
+  sourceReferenceId: string;
+  candidateReferenceId: string;
+  status: DuplicateSuggestionStatus;
+  message: string;
+}
+
 export interface AdminComplaintListResponse {
   items: Complaint[];
   total: number;
@@ -157,6 +194,7 @@ export interface AdminComplaintQuery {
   locality?: string;
   wardNumber?: number;
   language?: SupportedLanguage;
+  duplicateStatus?: string;
   page?: number;
   pageSize?: number;
 }
@@ -254,6 +292,9 @@ export interface AdminAnalyticsResponse {
   highPriorityIssues: number;
   resolvedToday: number;
   possibleDuplicates: number;
+  confirmedDuplicates?: number;
+  rejectedDuplicateSuggestions?: number;
+  pendingDuplicateReviews?: number;
   complaintsByCategory: Array<{ category: ComplaintCategory | string; count: number }>;
   complaintsByDate: Array<{ date: string; count: number }>;
   complaintsByLocality: Array<{ locality: string; count: number }>;
@@ -266,6 +307,9 @@ export interface AnalyticsSummary {
   highPriorityIssues: number;
   resolvedToday: number;
   possibleDuplicates: number;
+  confirmedDuplicates?: number;
+  rejectedDuplicateSuggestions?: number;
+  pendingDuplicateReviews?: number;
   trend: Array<{ day: string; complaints: number; resolved: number }>;
   categories: Array<{ category: string; count: number }>;
   localities: Array<{ locality: string; count: number }>;

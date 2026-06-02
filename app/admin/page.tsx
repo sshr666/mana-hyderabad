@@ -29,7 +29,11 @@ export default async function AdminOverviewPage() {
           icon={AlertTriangle}
         />
         <MetricCard label="Resolved Today" value={analytics.resolvedToday} icon={CheckCircle2} />
-        <MetricCard label="Possible Duplicates" value={analytics.possibleDuplicates} icon={Copy} />
+        <MetricCard
+          label="Possible Duplicates"
+          value={analytics.pendingDuplicateReviews ?? analytics.possibleDuplicates}
+          icon={Copy}
+        />
       </section>
 
       <DashboardCharts analytics={analytics} />

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAdminComplaints, getComplaint } from "@/lib/api-client";
+import { getComplaint } from "@/lib/api-client";
 import { ComplaintDetailPanel } from "@/components/admin/complaint-detail-panel";
 
 export const dynamic = "force-dynamic";
@@ -10,14 +10,8 @@ export default async function AdminComplaintDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [complaint, complaintList] = await Promise.all([
-    getComplaint(id),
-    getAdminComplaints({ pageSize: 100 })
-  ]);
+  const complaint = await getComplaint(id);
   if (!complaint) notFound();
-  const duplicates = complaintList.items.filter((item) =>
-    complaint.possibleDuplicateIds?.includes(item.id)
-  );
 
   return (
     <div className="space-y-6 p-6">
@@ -26,7 +20,7 @@ export default async function AdminComplaintDetailPage({
         <h1 className="text-2xl font-bold">{complaint.subcategory.replaceAll("_", " ")}</h1>
         <p className="text-muted-foreground">{complaint.landmark}</p>
       </header>
-      <ComplaintDetailPanel complaint={complaint} duplicates={duplicates} />
+      <ComplaintDetailPanel complaint={complaint} />
     </div>
   );
 }

@@ -429,6 +429,99 @@ Speech endpoints:
 - `POST /api/speech/transcribe`
 - `POST /api/speech/synthesize`
 
+## Duplicate Detection
+
+Duplicate detection is advisory only:
+
+```text
+New complaint
+→ PostGIS nearby search
+→ category and 72-hour time filter
+→ pgvector embedding comparison
+→ duplicate score
+→ pending suggestion
+→ admin review
+→ confirm or reject
+```
+
+The backend never automatically merges complaints, deletes complaints, or changes citizen reference IDs. Admins see `Possible duplicate` and must explicitly confirm or reject each suggestion.
+
+PostGIS candidate retrieval uses `ST_DWithin` against `Geography(Point, 4326)`, so distances are in metres. Defaults:
+
+- Radius: `200` metres
+- Time window: `72` hours
+- Category: same category only
+
+Embedding source text combines:
+
+- normalized English complaint text
+- category
+- landmark
+- locality
+
+pgvector stores the vector in `complaints.embedding`. For MVP-scale data, exact comparison over PostGIS-filtered candidates is sufficient. A future HNSW cosine index can be added when complaint volume grows.
+
+Environment variables:
+
+```env
+ENABLE_DUPLICATE_DETECTION=true
+DUPLICATE_RADIUS_METERS=200
+DUPLICATE_TIME_WINDOW_HOURS=72
+DUPLICATE_MIN_SEMANTIC_SIMILARITY=0.78
+DUPLICATE_HIGH_SIMILARITY_THRESHOLD=0.88
+DUPLICATE_MAX_CANDIDATES=20
+STORE_LOW_CONFIDENCE_DUPLICATES=false
+EMBEDDING_PROVIDER=openai_compatible
+EMBEDDING_API_KEY=
+EMBEDDING_BASE_URL=
+EMBEDDING_MODEL=
+EMBEDDING_DIMENSIONS=1536
+EMBEDDING_TIMEOUT_SECONDS=20
+EMBEDDING_MAX_RETRIES=2
+ENABLE_EMBEDDING_FALLBACK=false
+```
+
+Run the migration:
+
+```bash
+alembic upgrade head
+```
+
+Verify extensions:
+
+```sql
+SELECT extname
+FROM pg_extension
+WHERE extname IN ('postgis', 'vector');
+```
+
+Backfill missing embeddings:
+
+```bash
+python scripts/backfill_embeddings.py --batch-size 50
+python scripts/backfill_embeddings.py --dry-run
+```
+
+Recheck recent duplicate suggestions:
+
+```bash
+python scripts/recheck_duplicates.py --hours 72 --batch-size 100
+python scripts/recheck_duplicates.py --dry-run
+```
+
+Verify the full duplicate flow:
+
+```bash
+python scripts/verify_duplicate_detection_flow.py
+```
+
+Admin duplicate endpoints:
+
+- `GET /api/admin/complaints/{reference_id}/duplicate-suggestions`
+- `POST /api/admin/complaints/{reference_id}/run-duplicate-check`
+- `POST /api/admin/duplicate-suggestions/{suggestion_id}/confirm`
+- `POST /api/admin/duplicate-suggestions/{suggestion_id}/reject`
+
 ## Upload Validation
 
 - Accepts JPEG, PNG, and WEBP only.
@@ -475,7 +568,8 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No computer vision or vector duplicate detection yet.
+- No computer vision yet.
+- Duplicate detection requires configured embeddings for semantic comparison; if embeddings are unavailable, PostGIS-only suggestions can still be reviewed at lower confidence.
 - LLM output requires human verification and can misunderstand ambiguous complaints.
 - Fallback keyword rules remain active and may be less nuanced than model analysis.
 - Admin summaries are stored in the existing concise `reasoning_summary` field until a dedicated migration is added.

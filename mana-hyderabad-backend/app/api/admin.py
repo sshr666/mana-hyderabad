@@ -27,6 +27,7 @@ def get_admin_complaints(
     locality: str | None = None,
     ward_number: int | None = Query(default=None, alias="ward_number"),
     language: SupportedLanguage | None = None,
+    duplicate_status: str | None = Query(default=None, alias="duplicate_status"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -40,6 +41,7 @@ def get_admin_complaints(
         locality=locality,
         ward_number=ward_number,
         language=language.value if language else None,
+        duplicate_status=duplicate_status,
         page=page,
         page_size=page_size,
     )

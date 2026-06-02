@@ -8,9 +8,17 @@ import type {
   Complaint,
   ComplaintDepartment,
   ComplaintPriority,
+  DuplicateSuggestion,
   NearbyComplaint
 } from "@/lib/types";
-import { getNearbyComplaints, updateComplaint } from "@/lib/api-client";
+import {
+  confirmDuplicateSuggestion,
+  getDuplicateSuggestions,
+  getNearbyComplaints,
+  rejectDuplicateSuggestion,
+  runDuplicateCheck,
+  updateComplaint
+} from "@/lib/api-client";
 import { OperationsMap } from "@/components/admin/operations-map";
 import { TranslationStatus } from "@/components/admin/translation-status";
 import { Badge } from "@/components/ui/badge";
@@ -41,13 +49,7 @@ const departments: ComplaintDepartment[] = [
 ];
 const priorities: ComplaintPriority[] = ["LOW", "MEDIUM", "HIGH", "EMERGENCY"];
 
-export function ComplaintDetailPanel({
-  complaint,
-  duplicates
-}: {
-  complaint: Complaint;
-  duplicates: Complaint[];
-}) {
+export function ComplaintDetailPanel({ complaint }: { complaint: Complaint }) {
   const [status, setStatus] = useState(complaint.status);
   const [department, setDepartment] = useState(String(complaint.department));
   const [priority, setPriority] = useState(complaint.priority);
@@ -61,6 +63,9 @@ export function ComplaintDetailPanel({
   const [saving, setSaving] = useState(false);
   const [nearby, setNearby] = useState<NearbyComplaint[]>([]);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [duplicateSuggestions, setDuplicateSuggestions] = useState<DuplicateSuggestion[]>([]);
+  const [duplicatesLoading, setDuplicatesLoading] = useState(false);
+  const [duplicateActionLoading, setDuplicateActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -80,6 +85,18 @@ export function ComplaintDetailPanel({
       mounted = false;
     };
   }, [complaint.category, complaint.id, complaint.latitude, complaint.longitude]);
+
+  useEffect(() => {
+    let mounted = true;
+    setDuplicatesLoading(true);
+    getDuplicateSuggestions(complaint.id)
+      .then((items) => mounted && setDuplicateSuggestions(items))
+      .catch(() => mounted && setDuplicateSuggestions([]))
+      .finally(() => mounted && setDuplicatesLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, [complaint.id]);
 
   const save = async () => {
     try {
@@ -107,10 +124,66 @@ export function ComplaintDetailPanel({
     }
   };
 
-  const markDuplicate = (duplicateId: string) =>
-    setMessage(`${complaint.id} marked as a possible duplicate of ${duplicateId}.`);
-  const keepSeparate = (duplicateId: string) =>
-    setMessage(`${complaint.id} kept separate from ${duplicateId}.`);
+  const refreshDuplicateSuggestions = async () => {
+    try {
+      setDuplicatesLoading(true);
+      const items = await runDuplicateCheck(complaint.id);
+      setDuplicateSuggestions(items);
+      setMessage(items.length ? "Duplicate check refreshed." : "No duplicate suggestions found.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not run duplicate check.");
+    } finally {
+      setDuplicatesLoading(false);
+    }
+  };
+
+  const markDuplicate = async (suggestion: DuplicateSuggestion) => {
+    const confirmed = window.confirm(
+      `Confirm duplicate relationship?\n\nThis will link ${complaint.id} to ${suggestion.candidateReferenceId}. The original complaint remains stored and traceable.`
+    );
+    if (!confirmed) return;
+    try {
+      setDuplicateActionLoading(suggestion.suggestionId);
+      const response = await confirmDuplicateSuggestion(suggestion.suggestionId, {
+        reviewedBy: "admin",
+        reviewNote: `Linked to ${suggestion.candidateReferenceId} after admin review.`
+      });
+      setDuplicateSuggestions((items) =>
+        items.map((item) =>
+          item.suggestionId === suggestion.suggestionId ? response.suggestion : item
+        )
+      );
+      setMessage(response.message);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not confirm duplicate.");
+    } finally {
+      setDuplicateActionLoading(null);
+    }
+  };
+
+  const keepSeparate = async (suggestion: DuplicateSuggestion) => {
+    const confirmed = window.confirm(
+      `Keep ${complaint.id} and ${suggestion.candidateReferenceId} separate?\n\nThese complaints will remain independent records.`
+    );
+    if (!confirmed) return;
+    try {
+      setDuplicateActionLoading(suggestion.suggestionId);
+      const response = await rejectDuplicateSuggestion(suggestion.suggestionId, {
+        reviewedBy: "admin",
+        reviewNote: "Kept separate after admin review."
+      });
+      setDuplicateSuggestions((items) =>
+        items.map((item) =>
+          item.suggestionId === suggestion.suggestionId ? response.suggestion : item
+        )
+      );
+      setMessage(response.message);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not reject duplicate suggestion.");
+    } finally {
+      setDuplicateActionLoading(null);
+    }
+  };
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
@@ -266,29 +339,103 @@ export function ComplaintDetailPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Possible Similar Complaints</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Possible Duplicate Complaints</CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={refreshDuplicateSuggestions}
+                disabled={duplicatesLoading}
+              >
+                {duplicatesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Run Duplicate Check Again
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {duplicates.length === 0 ? (
+            {complaint.duplicateOfReferenceId && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                <p className="font-semibold">Duplicate Complaint</p>
+                <p>
+                  Linked to{" "}
+                  <Link
+                    className="underline"
+                    href={`/admin/complaints/${complaint.duplicateOfReferenceId}`}
+                  >
+                    {complaint.duplicateOfReferenceId}
+                  </Link>
+                  . The citizen&apos;s original reference ID remains valid.
+                </p>
+              </div>
+            )}
+            {duplicatesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading duplicate suggestions
+              </div>
+            ) : duplicateSuggestions.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No similar complaints are currently flagged.
+                No possible duplicate complaints are currently flagged.
               </p>
             ) : (
-              duplicates.map((duplicate) => (
-                <div key={duplicate.id} className="rounded-xl border p-4">
+              duplicateSuggestions.map((suggestion) => (
+                <div key={suggestion.suggestionId} className="rounded-xl border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold">{duplicate.id}</p>
-                      <p className="text-sm text-muted-foreground">{duplicate.landmark}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="border bg-background text-foreground">
+                          Possible duplicate
+                        </Badge>
+                        <Badge className={confidenceTone(suggestion.confidenceLabel)}>
+                          {suggestion.confidenceLabel}
+                        </Badge>
+                        <Badge className="bg-secondary text-secondary-foreground">
+                          {suggestion.status.replaceAll("_", " ")}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 font-semibold">{suggestion.candidateReferenceId}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {suggestion.candidateCategory.replaceAll("_", " ")} ·{" "}
+                        {suggestion.candidateStatus.replaceAll("_", " ")}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {suggestion.candidateLandmark ?? "No landmark provided"}
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Distance: {Math.round(suggestion.distanceMeters)} m · Reported{" "}
+                        {Math.round(suggestion.timeDifferenceHours)} hours apart · Score{" "}
+                        {Math.round(suggestion.duplicateScore * 100)}%
+                        {suggestion.semanticSimilarity !== null &&
+                          suggestion.semanticSimilarity !== undefined &&
+                          ` · Semantic similarity ${Math.round(suggestion.semanticSimilarity * 100)}%`}
+                      </p>
+                      <p className="mt-2 text-xs font-medium text-amber-700">
+                        Similarity recommendation only. Admin confirmation required.
+                      </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => markDuplicate(duplicate.id)}>
+                    <div className="flex flex-wrap gap-2">
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/admin/complaints/${suggestion.candidateReferenceId}`}>
+                          View Complaint
+                        </Link>
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => markDuplicate(suggestion)}
+                        disabled={
+                          duplicateActionLoading === suggestion.suggestionId ||
+                          suggestion.status === "CONFIRMED_DUPLICATE"
+                        }
+                      >
                         Mark as Duplicate
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => keepSeparate(duplicate.id)}
+                        onClick={() => keepSeparate(suggestion)}
+                        disabled={
+                          duplicateActionLoading === suggestion.suggestionId ||
+                          suggestion.status === "REJECTED"
+                        }
                       >
                         Keep Separate
                       </Button>
@@ -352,6 +499,12 @@ export function ComplaintDetailPanel({
       </Card>
     </div>
   );
+}
+
+function confidenceTone(confidence: string): string {
+  if (confidence === "HIGH") return "bg-red-100 text-red-800";
+  if (confidence === "MEDIUM") return "bg-amber-100 text-amber-800";
+  return "bg-slate-100 text-slate-700";
 }
 
 function formatAnalysisSource(source?: string | null): string {

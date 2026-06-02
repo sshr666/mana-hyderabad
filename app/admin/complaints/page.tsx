@@ -35,6 +35,12 @@ export default function AdminComplaintsPage() {
       status: filters.status === "all" ? undefined : filters.status,
       locality: filters.locality === "all" ? undefined : filters.locality,
       language: filters.language === "all" ? undefined : filters.language,
+      duplicateStatus:
+        filters.duplicate === "yes"
+          ? "PENDING_REVIEW"
+          : filters.duplicate === "no"
+            ? "NONE"
+            : undefined,
       page,
       pageSize: 20
     })

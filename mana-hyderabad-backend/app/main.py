@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api import admin, complaints, speech, translation, uploads
+from app.api import admin, complaints, duplicates, speech, translation, uploads
 from app.config import get_settings
 
 settings = get_settings()
@@ -35,6 +35,7 @@ def health() -> dict[str, str]:
 
 app.include_router(complaints.router)
 app.include_router(admin.router)
+app.include_router(duplicates.router)
 app.include_router(uploads.router)
 app.include_router(translation.router)
 app.include_router(speech.router)

@@ -21,6 +21,9 @@ import type {
   SupportedLanguage,
   ComplaintAnalysisRequest,
   ComplaintUpdatePayload,
+  DuplicateReviewPayload,
+  DuplicateReviewResponse,
+  DuplicateSuggestion,
   LanguageDetectionResponse,
   TranslationRequest,
   TranslationResponse,
@@ -71,6 +74,8 @@ interface BackendComplaint {
   reasoningSummary?: string | null;
   adminSummary?: string | null;
   guardrailsApplied?: string[];
+  duplicateOfReferenceId?: string | null;
+  duplicateResolutionStatus?: "CONFIRMED_DUPLICATE" | "KEEP_SEPARATE" | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -240,6 +245,7 @@ export async function getAdminComplaints(
           locality: query.locality,
           ward_number: query.wardNumber,
           language: query.language,
+          duplicate_status: query.duplicateStatus,
           page: query.page ?? 1,
           page_size: query.pageSize ?? 20
         },
@@ -383,6 +389,56 @@ export async function getHotspots(
         signal
       }),
     () => []
+  );
+}
+
+export async function getDuplicateSuggestions(
+  referenceId: string,
+  signal?: AbortSignal
+): Promise<DuplicateSuggestion[]> {
+  return withMockFallback(
+    () =>
+      requestJson<DuplicateSuggestion[]>(
+        `/api/admin/complaints/${encodeURIComponent(referenceId)}/duplicate-suggestions`,
+        { signal }
+      ),
+    () => []
+  );
+}
+
+export async function runDuplicateCheck(
+  referenceId: string,
+  signal?: AbortSignal
+): Promise<DuplicateSuggestion[]> {
+  return requestJson<DuplicateSuggestion[]>(
+    `/api/admin/complaints/${encodeURIComponent(referenceId)}/run-duplicate-check`,
+    {
+      method: "POST",
+      body: {},
+      signal
+    }
+  );
+}
+
+export async function confirmDuplicateSuggestion(
+  suggestionId: string,
+  payload: DuplicateReviewPayload,
+  signal?: AbortSignal
+): Promise<DuplicateReviewResponse> {
+  return requestJson<DuplicateReviewResponse>(
+    `/api/admin/duplicate-suggestions/${encodeURIComponent(suggestionId)}/confirm`,
+    { method: "POST", body: payload, signal }
+  );
+}
+
+export async function rejectDuplicateSuggestion(
+  suggestionId: string,
+  payload: DuplicateReviewPayload,
+  signal?: AbortSignal
+): Promise<DuplicateReviewResponse> {
+  return requestJson<DuplicateReviewResponse>(
+    `/api/admin/duplicate-suggestions/${encodeURIComponent(suggestionId)}/reject`,
+    { method: "POST", body: payload, signal }
   );
 }
 
@@ -592,6 +648,8 @@ function mapBackendComplaint(complaint: BackendComplaint): Complaint {
     adminSummary: complaint.adminSummary ?? null,
     guardrailsApplied: complaint.guardrailsApplied ?? [],
     translationProvider: complaint.translationProvider ?? null,
+    duplicateOfReferenceId: complaint.duplicateOfReferenceId ?? null,
+    duplicateResolutionStatus: complaint.duplicateResolutionStatus ?? null,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt
   };
@@ -636,6 +694,9 @@ function mapAnalytics(response: AdminAnalyticsResponse): AnalyticsSummary {
     highPriorityIssues: response.highPriorityIssues,
     resolvedToday: response.resolvedToday,
     possibleDuplicates: response.possibleDuplicates ?? 0,
+    confirmedDuplicates: response.confirmedDuplicates ?? 0,
+    rejectedDuplicateSuggestions: response.rejectedDuplicateSuggestions ?? 0,
+    pendingDuplicateReviews: response.pendingDuplicateReviews ?? response.possibleDuplicates ?? 0,
     trend: response.complaintsByDate.map((item) => ({
       day: item.date,
       complaints: item.count,

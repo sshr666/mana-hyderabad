@@ -59,11 +59,7 @@ export function ComplaintTable({
               </TableCell>
               {!compact && <TableCell>{formatDateTime(complaint.createdAt)}</TableCell>}
               {!compact && <TableCell>{languageName(complaint.originalLanguage)}</TableCell>}
-              {!compact && (
-                <TableCell>
-                  {complaint.possibleDuplicateIds?.length ? "Possible duplicate" : "None"}
-                </TableCell>
-              )}
+              {!compact && <TableCell>{duplicateStatusLabel(complaint)}</TableCell>}
               <TableCell>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/admin/complaints/${complaint.id}`}>View Details</Link>
@@ -75,4 +71,11 @@ export function ComplaintTable({
       </Table>
     </div>
   );
+}
+
+function duplicateStatusLabel(complaint: Complaint): string {
+  if (complaint.duplicateResolutionStatus === "CONFIRMED_DUPLICATE") return "Confirmed Duplicate";
+  if (complaint.duplicateResolutionStatus === "KEEP_SEPARATE") return "Keep Separate";
+  if (complaint.possibleDuplicateIds?.length) return "Possible Duplicate";
+  return "No Duplicate Flag";
 }

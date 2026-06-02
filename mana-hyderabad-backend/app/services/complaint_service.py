@@ -80,6 +80,8 @@ def create_complaint(db: Session, payload: ComplaintCreate) -> Complaint:
         created = complaint_repository.create_complaint(db, complaint)
         db.commit()
         db.refresh(created)
+        _attempt_duplicate_detection(db, created)
+        db.refresh(created)
         return created
     except SQLAlchemyError as exc:
         db.rollback()
@@ -103,6 +105,7 @@ def list_complaints(
     locality: str | None,
     ward_number: int | None,
     language: str | None,
+    duplicate_status: str | None,
     page: int,
     page_size: int,
 ) -> tuple[list[Complaint], int]:
@@ -117,6 +120,7 @@ def list_complaints(
         locality=locality,
         ward_number=ward_number,
         language=language,
+        duplicate_status=duplicate_status,
         page=page,
         page_size=page_size,
     )
@@ -165,7 +169,22 @@ def analytics(db: Session) -> dict[str, object]:
         "openComplaints": complaint_repository.count_open_complaints(db),
         "highPriorityIssues": complaint_repository.count_high_priority_complaints(db),
         "resolvedToday": complaint_repository.count_resolved_today(db),
-        "possibleDuplicates": 0,
+        "possibleDuplicates": complaint_repository.count_duplicate_suggestions(
+            db,
+            status_filter=_duplicate_status("PENDING_REVIEW"),
+        ),
+        "confirmedDuplicates": complaint_repository.count_duplicate_suggestions(
+            db,
+            status_filter=_duplicate_status("CONFIRMED_DUPLICATE"),
+        ),
+        "rejectedDuplicateSuggestions": complaint_repository.count_duplicate_suggestions(
+            db,
+            status_filter=_duplicate_status("REJECTED"),
+        ),
+        "pendingDuplicateReviews": complaint_repository.count_duplicate_suggestions(
+            db,
+            status_filter=_duplicate_status("PENDING_REVIEW"),
+        ),
         "complaintsByCategory": complaint_repository.complaints_by_category(db),
         "complaintsByDate": complaint_repository.complaints_by_date(db),
         "complaintsByLocality": complaint_repository.count_by_locality(db),
@@ -193,3 +212,22 @@ def _infer_locality(text: str | None) -> str | None:
         if locality.lower() in lower:
             return locality
     return None
+
+
+def _attempt_duplicate_detection(db: Session, complaint: Complaint) -> None:
+    from app.config import get_settings
+    from app.services.duplicate_detection_service import detect_duplicate_candidates, try_generate_and_store_embedding
+
+    if not get_settings().enable_duplicate_detection:
+        return
+    try:
+        try_generate_and_store_embedding(db, complaint)
+        detect_duplicate_candidates(db, complaint.id)
+    except Exception:
+        db.rollback()
+
+
+def _duplicate_status(value: str):
+    from app.models.complaint import DuplicateSuggestionStatus
+
+    return DuplicateSuggestionStatus(value)

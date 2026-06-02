@@ -37,6 +37,21 @@ export type DuplicateSuggestionStatus =
   | "REJECTED"
   | "DISMISSED";
 export type DuplicateConfidence = "LOW" | "MEDIUM" | "HIGH";
+export type VisionStatus = "NOT_REQUESTED" | "PENDING" | "COMPLETED" | "FAILED" | "NOT_CONFIGURED";
+export type CivicVisionLabel = "garbage_heap" | "blocked_drain" | "stagnant_water" | "pothole";
+
+export interface BoundingBox {
+  xMin: number;
+  yMin: number;
+  xMax: number;
+  yMax: number;
+}
+
+export interface DetectedObject {
+  label: CivicVisionLabel;
+  confidence: number;
+  boundingBox?: BoundingBox | null;
+}
 
 export interface Complaint {
   id: string;
@@ -68,6 +83,14 @@ export interface Complaint {
   translationProvider?: string | null;
   duplicateOfReferenceId?: string | null;
   duplicateResolutionStatus?: "CONFIRMED_DUPLICATE" | "KEEP_SEPARATE" | null;
+  visionStatus?: VisionStatus | null;
+  visionDetectedObjects?: DetectedObject[] | null;
+  visionCitizenMessage?: string | null;
+  visionAdminSummary?: string | null;
+  visionModelVersion?: string | null;
+  visionProcessedAt?: string | null;
+  requiresVisionHumanVerification?: boolean;
+  visionInferenceDurationMs?: number | null;
   createdAt: string;
   updatedAt: string;
   possibleDuplicateIds?: string[];
@@ -177,6 +200,29 @@ export interface DuplicateReviewResponse {
   candidateReferenceId: string;
   status: DuplicateSuggestionStatus;
   message: string;
+}
+
+export interface VisionAnalysisResponse {
+  status: VisionStatus;
+  detectedObjects: DetectedObject[];
+  citizenMessage: string;
+  adminSummary: string;
+  modelVersion?: string | null;
+  processedAt?: string | null;
+  requiresHumanVerification: boolean;
+  inferenceDurationMs?: number | null;
+}
+
+export interface ComplaintVisionAnalysisResponse {
+  complaintReferenceId: string;
+  visionStatus: VisionStatus;
+  detectedObjects: DetectedObject[];
+  citizenMessage?: string | null;
+  adminSummary?: string | null;
+  modelVersion?: string | null;
+  processedAt?: string | null;
+  requiresHumanVerification: boolean;
+  inferenceDurationMs?: number | null;
 }
 
 export interface AdminComplaintListResponse {

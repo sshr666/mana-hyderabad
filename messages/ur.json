@@ -110,6 +110,23 @@
     "replay": "دوبارہ چلائیں",
     "spokenUnavailable": "بولا ہوا جواب دستیاب نہیں"
   },
+  "vision": {
+    "aiImageNote": "AI کی مدد سے تصویر نوٹ",
+    "analysingImage": "اپلوڈ کی گئی تصویر کا تجزیہ ہو رہا ہے",
+    "fieldVerificationRequired": "فیلڈ تصدیق ضروری ہے",
+    "analysisUnavailable": "خودکار تصویر تجزیہ دستیاب نہیں",
+    "uploadedPhoto": "اپلوڈ کی گئی تصویر",
+    "aiImageAnalysis": "AI کی مدد سے تصویر تجزیہ",
+    "detectedIssues": "شناخت شدہ مسائل",
+    "confidence": "اعتماد",
+    "runAgain": "تجزیہ دوبارہ چلائیں",
+    "openFullImage": "مکمل تصویر کھولیں",
+    "showBoxes": "AI باکسز دکھائیں",
+    "hideBoxes": "AI باکسز چھپائیں",
+    "manualReviewRecommended": "دستی جائزہ تجویز کیا گیا",
+    "textImageDiffer": "متن اور تصویر کا تجزیہ مختلف ہے",
+    "reviewManually": "اپلوڈ کی گئی تصویر دستی طور پر دیکھیں"
+  },
   "track": {
     "title": "شکایت ٹریک کریں",
     "label": "شکایت ریفرنس ID",

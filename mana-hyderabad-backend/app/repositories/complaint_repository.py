@@ -130,6 +130,14 @@ def update_embedding(
     return complaint
 
 
+def update_vision_result(db: Session, complaint: Complaint, updates: dict[str, Any]) -> Complaint:
+    for field, value in updates.items():
+        setattr(complaint, field, value)
+    db.flush()
+    db.refresh(complaint)
+    return complaint
+
+
 def count_open_complaints(db: Session) -> int:
     return db.scalar(select(func.count()).where(Complaint.status.in_(OPEN_STATUSES))) or 0
 

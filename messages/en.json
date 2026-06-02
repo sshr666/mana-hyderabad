@@ -110,6 +110,23 @@
     "replay": "Replay",
     "spokenUnavailable": "Spoken response unavailable"
   },
+  "vision": {
+    "aiImageNote": "AI-Assisted Image Note",
+    "analysingImage": "Analysing Uploaded Image",
+    "fieldVerificationRequired": "Field Verification Required",
+    "analysisUnavailable": "Automated Image Analysis Unavailable",
+    "uploadedPhoto": "Uploaded Photo",
+    "aiImageAnalysis": "AI-Assisted Image Analysis",
+    "detectedIssues": "Detected Issues",
+    "confidence": "Confidence",
+    "runAgain": "Run Analysis Again",
+    "openFullImage": "Open Full Image",
+    "showBoxes": "Show AI Bounding Boxes",
+    "hideBoxes": "Hide AI Bounding Boxes",
+    "manualReviewRecommended": "Manual Review Recommended",
+    "textImageDiffer": "Text and Image Analysis Differ",
+    "reviewManually": "Review Uploaded Image Manually"
+  },
   "track": {
     "title": "Track Complaint",
     "label": "Complaint reference ID",

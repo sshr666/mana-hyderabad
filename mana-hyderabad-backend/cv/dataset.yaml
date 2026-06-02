@@ -1,0 +1,10 @@
+path: ./cv/data
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: garbage_heap
+  1: blocked_drain
+  2: stagnant_water
+  3: pothole

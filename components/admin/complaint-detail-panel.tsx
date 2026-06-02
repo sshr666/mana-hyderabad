@@ -21,6 +21,7 @@ import {
 } from "@/lib/api-client";
 import { OperationsMap } from "@/components/admin/operations-map";
 import { TranslationStatus } from "@/components/admin/translation-status";
+import { VisionAnalysisPanel } from "@/components/admin/vision-analysis-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -255,6 +256,8 @@ export function ComplaintDetailPanel({ complaint }: { complaint: Complaint }) {
             <OperationsMap complaints={[complaint]} />
           </CardContent>
         </Card>
+
+        <VisionAnalysisPanel complaint={complaint} />
 
         <Card>
           <CardHeader>

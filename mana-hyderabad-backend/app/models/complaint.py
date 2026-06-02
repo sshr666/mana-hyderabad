@@ -4,7 +4,7 @@ from datetime import datetime
 
 from geoalchemy2 import Geography
 from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.config import get_settings
@@ -74,6 +74,14 @@ class DuplicateConfidence(str, enum.Enum):
 class DuplicateResolutionStatus(str, enum.Enum):
     CONFIRMED_DUPLICATE = "CONFIRMED_DUPLICATE"
     KEEP_SEPARATE = "KEEP_SEPARATE"
+
+
+class VisionStatus(str, enum.Enum):
+    NOT_REQUESTED = "NOT_REQUESTED"
+    PENDING = "PENDING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    NOT_CONFIGURED = "NOT_CONFIGURED"
 
 
 class SupportedLanguage(str, enum.Enum):
@@ -158,6 +166,25 @@ class Complaint(Base):
         Enum(DuplicateResolutionStatus, name="duplicate_resolution_status"),
         nullable=True,
     )
+    vision_status: Mapped[VisionStatus | None] = mapped_column(
+        Enum(VisionStatus, name="vision_status"),
+        nullable=True,
+        default=VisionStatus.NOT_REQUESTED,
+        server_default=VisionStatus.NOT_REQUESTED.value,
+    )
+    vision_detected_objects: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
+    vision_citizen_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    vision_admin_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    vision_model_version: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    vision_processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    vision_error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    requires_vision_human_verification: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
+    vision_inference_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { priorityTone } from "@/lib/utils";
+import { VisionAnalysisNote } from "@/components/citizen/vision-analysis-note";
 
 interface ComplaintReviewProps {
   analysis: ComplaintAnalysis;
@@ -44,6 +45,7 @@ export function ComplaintReview({
             <div className="relative h-36 overflow-hidden rounded-lg border">
               <Image src={photoUrl} alt="Complaint upload preview" fill className="object-cover" />
             </div>
+            <VisionAnalysisNote message="Photo added successfully. Field verification is required." />
           </div>
         )}
         <div className="flex gap-2">

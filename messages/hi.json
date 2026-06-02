@@ -110,6 +110,23 @@
     "replay": "फिर चलाएं",
     "spokenUnavailable": "बोला हुआ जवाब उपलब्ध नहीं है"
   },
+  "vision": {
+    "aiImageNote": "AI-सहायता वाली इमेज नोट",
+    "analysingImage": "अपलोड की गई इमेज का विश्लेषण हो रहा है",
+    "fieldVerificationRequired": "फील्ड सत्यापन आवश्यक है",
+    "analysisUnavailable": "ऑटोमेटेड इमेज विश्लेषण उपलब्ध नहीं है",
+    "uploadedPhoto": "अपलोड की गई फोटो",
+    "aiImageAnalysis": "AI-सहायता वाली इमेज विश्लेषण",
+    "detectedIssues": "पहचानी गई समस्याएं",
+    "confidence": "कॉन्फिडेंस",
+    "runAgain": "विश्लेषण फिर चलाएं",
+    "openFullImage": "पूरी इमेज खोलें",
+    "showBoxes": "AI बॉक्स दिखाएं",
+    "hideBoxes": "AI बॉक्स छिपाएं",
+    "manualReviewRecommended": "मैन्युअल समीक्षा सुझाई गई",
+    "textImageDiffer": "टेक्स्ट और इमेज विश्लेषण अलग हैं",
+    "reviewManually": "अपलोड की गई इमेज मैन्युअल रूप से देखें"
+  },
   "track": {
     "title": "शिकायत ट्रैक करें",
     "label": "शिकायत रेफरेंस ID",

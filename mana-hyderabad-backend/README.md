@@ -2,9 +2,9 @@
 
 FastAPI backend foundation for the Mana Hyderabad civic complaint platform.
 
-This phase implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Cloudinary image uploads, multilingual translation support, speech input scaffolding, Alembic migrations, seed data, and pytest coverage.
+This backend implements PostgreSQL/PostGIS-backed complaint storage, human-readable reference IDs, tracking, admin filtering, status updates, map points, nearby complaint radius search, locality and ward grouping, basic hotspot detection, Cloudinary image uploads, multilingual translation support, speech input scaffolding, LLM-assisted analysis, pgvector duplicate suggestions, computer-vision image-analysis scaffolding, Alembic migrations, seed data, and pytest coverage.
 
-It intentionally does not include LLMs, computer vision, authentication, or pgvector semantic search yet.
+It intentionally does not include authentication, automatic complaint resolution, automatic duplicate merging, or automatic field-team assignment.
 
 ## Setup
 
@@ -52,6 +52,23 @@ LLM_TEMPERATURE=0
 LLM_MAX_OUTPUT_TOKENS=800
 ENABLE_RULE_FALLBACK=true
 ENABLE_LLM_JSON_MODE=true
+ENABLE_DUPLICATE_DETECTION=true
+DUPLICATE_RADIUS_METERS=200
+DUPLICATE_TIME_WINDOW_HOURS=72
+EMBEDDING_PROVIDER=openai_compatible
+EMBEDDING_API_KEY=
+EMBEDDING_BASE_URL=
+EMBEDDING_MODEL=
+EMBEDDING_DIMENSIONS=1536
+ENABLE_VISION_ANALYSIS=true
+VISION_MODEL_PATH=cv/models/best.pt
+VISION_BASE_MODEL=
+VISION_CONFIDENCE_THRESHOLD=0.45
+VISION_IOU_THRESHOLD=0.50
+VISION_ALLOWED_IMAGE_HOSTS=
+VISION_RUN_ON_COMPLAINT_SUBMISSION=true
+VISION_DEVICE=auto
+VISION_MODEL_VERSION=mana-hyderabad-civic-v1
 ```
 
 Credentials are loaded through `app/config.py`; do not hardcode them in Python files.
@@ -119,6 +136,10 @@ POST   /api/translation/detect-language
 POST   /api/translation/translate
 POST   /api/speech/transcribe
 POST   /api/speech/synthesize
+GET    /api/vision/health
+POST   /api/vision/analyse
+GET    /api/admin/complaints/{reference_id}/vision-analysis
+POST   /api/admin/complaints/{reference_id}/run-vision-analysis
 ```
 
 ## LLM Analysis Flow
@@ -522,6 +543,108 @@ Admin duplicate endpoints:
 - `POST /api/admin/duplicate-suggestions/{suggestion_id}/confirm`
 - `POST /api/admin/duplicate-suggestions/{suggestion_id}/reject`
 
+## Computer-Vision Flow
+
+Computer vision is advisory only:
+
+```text
+Citizen uploads image
+→ image URL stored
+→ trusted-host image fetch
+→ YOLO inference
+→ allowed-label filtering
+→ prediction storage
+→ cautious citizen note
+→ admin review
+```
+
+Supported classes:
+
+- `garbage_heap`
+- `blocked_drain`
+- `stagnant_water`
+- `pothole`
+
+The model output must always be treated as AI-assisted analysis requiring field verification. The backend never automatically changes complaint status, priority, department, resolution, or field-team assignment based on image analysis.
+
+Vision environment variables:
+
+```env
+ENABLE_VISION_ANALYSIS=true
+VISION_MODEL_PATH=cv/models/best.pt
+VISION_BASE_MODEL=
+VISION_CONFIDENCE_THRESHOLD=0.45
+VISION_IOU_THRESHOLD=0.50
+VISION_MAX_IMAGE_SIZE_MB=8
+VISION_IMAGE_DOWNLOAD_TIMEOUT_SECONDS=15
+VISION_ALLOWED_IMAGE_HOSTS=res.cloudinary.com
+VISION_STORE_BOUNDING_BOXES=true
+VISION_RUN_ON_COMPLAINT_SUBMISSION=true
+VISION_DEVICE=auto
+VISION_IMAGE_SIZE=640
+VISION_MAX_DETECTIONS=20
+VISION_MODEL_VERSION=mana-hyderabad-civic-v1
+```
+
+Image fetch safeguards:
+
+- only HTTPS URLs are accepted
+- `file://`, localhost, loopback, and private-network hosts are rejected
+- trusted hosts can be enforced through `VISION_ALLOWED_IMAGE_HOSTS`
+- images are size-limited and validated with Pillow
+- raw image bytes are not stored in PostgreSQL
+
+Dataset format:
+
+```text
+cv/data/images/train
+cv/data/images/val
+cv/data/images/test
+cv/data/labels/train
+cv/data/labels/val
+cv/data/labels/test
+```
+
+Run dataset sanity checks:
+
+```bash
+python cv/sanity_check.py --data cv/dataset.yaml
+```
+
+Train:
+
+```bash
+python cv/train.py --model yolo11n.pt --data cv/dataset.yaml --epochs 50 --imgsz 640 --batch 8 --device auto
+```
+
+Validate:
+
+```bash
+python cv/validate.py --model cv/models/best.pt --data cv/dataset.yaml
+```
+
+Predict sample:
+
+```bash
+python cv/predict_sample.py --model cv/models/best.pt --source cv/sample-images/sample.jpg
+```
+
+Backfill existing photo complaints:
+
+```bash
+python scripts/backfill_vision_analysis.py --batch-size 25
+python scripts/backfill_vision_analysis.py --dry-run
+python scripts/backfill_vision_analysis.py --force
+```
+
+Verify vision flow:
+
+```bash
+python scripts/verify_vision_flow.py
+```
+
+Licensing note: review the selected computer-vision library and dataset licenses before closed-source or commercial deployment. This is not legal advice.
+
 ## Upload Validation
 
 - Accepts JPEG, PNG, and WEBP only.
@@ -568,7 +691,10 @@ The backend uses camelCase JSON aliases expected by the frontend, including `ref
 ## Remaining Limitations
 
 - No authentication or role-based access yet.
-- No computer vision yet.
+- Computer-vision predictions require human verification and depend on configured model weights at `VISION_MODEL_PATH`.
+- The model detects only `garbage_heap`, `blocked_drain`, `stagnant_water`, and `pothole`.
+- Small or weak datasets can produce unreliable predictions; rainy, dark, obstructed, or unusual camera angles may reduce accuracy.
+- Confidence scores are not proof and do not automatically change priority, status, department, or team assignment.
 - Duplicate detection requires configured embeddings for semantic comparison; if embeddings are unavailable, PostGIS-only suggestions can still be reviewed at lower confidence.
 - LLM output requires human verification and can misunderstand ambiguous complaints.
 - Fallback keyword rules remain active and may be less nuanced than model analysis.

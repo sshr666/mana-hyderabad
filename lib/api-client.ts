@@ -24,11 +24,15 @@ import type {
   DuplicateReviewPayload,
   DuplicateReviewResponse,
   DuplicateSuggestion,
+  ComplaintVisionAnalysisResponse,
   LanguageDetectionResponse,
   TranslationRequest,
   TranslationResponse,
   SpeechSynthesisResponse,
-  SpeechTranscriptionResponse
+  SpeechTranscriptionResponse,
+  VisionAnalysisResponse,
+  VisionStatus,
+  DetectedObject
 } from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
@@ -76,6 +80,14 @@ interface BackendComplaint {
   guardrailsApplied?: string[];
   duplicateOfReferenceId?: string | null;
   duplicateResolutionStatus?: "CONFIRMED_DUPLICATE" | "KEEP_SEPARATE" | null;
+  visionStatus?: VisionStatus | null;
+  visionDetectedObjects?: DetectedObject[] | null;
+  visionCitizenMessage?: string | null;
+  visionAdminSummary?: string | null;
+  visionModelVersion?: string | null;
+  visionProcessedAt?: string | null;
+  requiresVisionHumanVerification?: boolean;
+  visionInferenceDurationMs?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -442,6 +454,37 @@ export async function rejectDuplicateSuggestion(
   );
 }
 
+export async function analyseImage(
+  photoUrl: string,
+  signal?: AbortSignal
+): Promise<VisionAnalysisResponse> {
+  return requestJson<VisionAnalysisResponse>("/api/vision/analyse", {
+    method: "POST",
+    body: { photoUrl },
+    signal
+  });
+}
+
+export async function runComplaintVisionAnalysis(
+  referenceId: string,
+  signal?: AbortSignal
+): Promise<ComplaintVisionAnalysisResponse> {
+  return requestJson<ComplaintVisionAnalysisResponse>(
+    `/api/admin/complaints/${encodeURIComponent(referenceId)}/run-vision-analysis`,
+    { method: "POST", body: {}, signal }
+  );
+}
+
+export async function getComplaintVisionAnalysis(
+  referenceId: string,
+  signal?: AbortSignal
+): Promise<ComplaintVisionAnalysisResponse> {
+  return requestJson<ComplaintVisionAnalysisResponse>(
+    `/api/admin/complaints/${encodeURIComponent(referenceId)}/vision-analysis`,
+    { signal }
+  );
+}
+
 export async function uploadComplaintImage(
   file: File,
   signal?: AbortSignal
@@ -650,6 +693,14 @@ function mapBackendComplaint(complaint: BackendComplaint): Complaint {
     translationProvider: complaint.translationProvider ?? null,
     duplicateOfReferenceId: complaint.duplicateOfReferenceId ?? null,
     duplicateResolutionStatus: complaint.duplicateResolutionStatus ?? null,
+    visionStatus: complaint.visionStatus ?? null,
+    visionDetectedObjects: complaint.visionDetectedObjects ?? [],
+    visionCitizenMessage: complaint.visionCitizenMessage ?? null,
+    visionAdminSummary: complaint.visionAdminSummary ?? null,
+    visionModelVersion: complaint.visionModelVersion ?? null,
+    visionProcessedAt: complaint.visionProcessedAt ?? null,
+    requiresVisionHumanVerification: complaint.requiresVisionHumanVerification ?? true,
+    visionInferenceDurationMs: complaint.visionInferenceDurationMs ?? null,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt
   };

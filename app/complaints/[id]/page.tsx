@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { getComplaint } from "@/lib/api-client";
 import { StatusStepper } from "@/components/citizen/status-stepper";
 import { LanguageChangeButton } from "@/components/citizen/language-change-button";
+import { VisionAnalysisNote } from "@/components/citizen/vision-analysis-note";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, priorityTone, statusTone } from "@/lib/utils";
@@ -49,14 +50,22 @@ export default async function ComplaintStatusPage({ params }: { params: Promise<
           <section className="rounded-xl border bg-secondary/40 p-4">
             <h2 className="font-semibold">Complaint Photo</h2>
             {complaint.photoUrl ? (
-              <div className="mt-3 overflow-hidden rounded-lg border bg-card">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={complaint.photoUrl}
-                  alt={`Photo submitted for complaint ${complaint.id}`}
-                  className="max-h-96 w-full object-cover"
-                />
-              </div>
+              <>
+                <div className="mt-3 overflow-hidden rounded-lg border bg-card">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={complaint.photoUrl}
+                    alt={`Photo submitted for complaint ${complaint.id}`}
+                    className="max-h-96 w-full object-cover"
+                  />
+                </div>
+                <div className="mt-3">
+                  <VisionAnalysisNote
+                    status={complaint.visionStatus}
+                    message={complaint.visionCitizenMessage}
+                  />
+                </div>
+              </>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">No image uploaded.</p>
             )}

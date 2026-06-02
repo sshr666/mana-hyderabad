@@ -72,6 +72,20 @@ class Settings(BaseSettings):
     embedding_timeout_seconds: int = Field(default=20, alias="EMBEDDING_TIMEOUT_SECONDS")
     embedding_max_retries: int = Field(default=2, alias="EMBEDDING_MAX_RETRIES")
     enable_embedding_fallback: bool = Field(default=False, alias="ENABLE_EMBEDDING_FALLBACK")
+    enable_vision_analysis: bool = Field(default=True, alias="ENABLE_VISION_ANALYSIS")
+    vision_model_path: str = Field(default="cv/models/best.pt", alias="VISION_MODEL_PATH")
+    vision_base_model: str = Field(default="", alias="VISION_BASE_MODEL")
+    vision_confidence_threshold: float = Field(default=0.45, alias="VISION_CONFIDENCE_THRESHOLD")
+    vision_iou_threshold: float = Field(default=0.50, alias="VISION_IOU_THRESHOLD")
+    vision_max_image_size_mb: int = Field(default=8, alias="VISION_MAX_IMAGE_SIZE_MB")
+    vision_image_download_timeout_seconds: int = Field(default=15, alias="VISION_IMAGE_DOWNLOAD_TIMEOUT_SECONDS")
+    vision_allowed_image_hosts: str = Field(default="", alias="VISION_ALLOWED_IMAGE_HOSTS")
+    vision_store_bounding_boxes: bool = Field(default=True, alias="VISION_STORE_BOUNDING_BOXES")
+    vision_run_on_complaint_submission: bool = Field(default=True, alias="VISION_RUN_ON_COMPLAINT_SUBMISSION")
+    vision_device: str = Field(default="auto", alias="VISION_DEVICE")
+    vision_image_size: int = Field(default=640, alias="VISION_IMAGE_SIZE")
+    vision_max_detections: int = Field(default=20, alias="VISION_MAX_DETECTIONS")
+    vision_model_version: str = Field(default="mana-hyderabad-civic-v1", alias="VISION_MODEL_VERSION")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -97,6 +111,14 @@ class Settings(BaseSettings):
     @property
     def max_audio_size_bytes(self) -> int:
         return self.max_audio_size_mb * 1024 * 1024
+
+    @property
+    def vision_max_image_size_bytes(self) -> int:
+        return self.vision_max_image_size_mb * 1024 * 1024
+
+    @property
+    def trusted_vision_image_hosts(self) -> set[str]:
+        return {item.strip().lower() for item in self.vision_allowed_image_hosts.split(",") if item.strip()}
 
 
 @lru_cache

@@ -1,11 +1,11 @@
-import { getAnalytics } from "@/lib/api-client";
+import { getAdminAnalytics } from "@/lib/api-client";
 import { DashboardCharts } from "@/components/admin/dashboard-charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
 export default async function AnalyticsPage() {
-  const analytics = await getAnalytics();
+  const analytics = await getAdminAnalytics();
 
   return (
     <div className="space-y-6 p-6">

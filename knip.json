@@ -8,5 +8,7 @@
     "postcss.config.mjs"
   ],
   "project": ["**/*.{ts,tsx,js,mjs}"],
-  "ignore": [".next/**", "node_modules/**"]
+  "ignore": [".next/**", "node_modules/**"],
+  "ignoreBinaries": ["git-cliff"],
+  "ignoreDependencies": ["eslint-config-next"]
 }

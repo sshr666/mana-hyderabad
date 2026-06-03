@@ -313,8 +313,6 @@ export async function getAdminAnalytics(signal?: AbortSignal): Promise<Analytics
   );
 }
 
-export const getAnalytics = getAdminAnalytics;
-
 export async function getAdminMapPoints(
   filters: MapPointFilters = {},
   signal?: AbortSignal

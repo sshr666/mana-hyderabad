@@ -80,6 +80,12 @@ The team workflow follows:
 
 For future phases, create a new folder under `specs/` before implementing code. Write requirements in `spec.md` first, add technology choices in `plan.md`, then break work into `tasks.md`.
 
+## Swecha Corpus Client CLI
+
+For team workflows that need to upload approved Mana Hyderabad media, OCR, ASR, transcription, or translation artifacts to the Swecha Corpus API, use the external Corpus Client CLI.
+
+See [docs/corpus-client-cli.md](docs/corpus-client-cli.md) for installation, authentication, upload, extracted-text upload, resume, and troubleshooting commands adapted from the official CLI README.
+
 ---
 
 The platform accepts text, voice, photographs, and GPS location. It can understand complaints written in English, Telugu, Hindi, Urdu, or mixed-language formats such as Telugu-English and Hindi-English. It converts each complaint into a structured ticket, identifies likely duplicates, estimates urgency, and displays complaints on a map-based operations dashboard.

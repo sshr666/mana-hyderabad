@@ -16,3 +16,8 @@ __pycache__
 .env.*.local
 .DS_Store
 npm-debug.log*
+upload_state.json
+extracted_text_state.json
+corpus_client_state.json
+upload_log.txt
+uploaded_extracted_text.log

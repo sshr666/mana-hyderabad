@@ -98,19 +98,31 @@ changelog:
 backend_tests:
   image: python:3.11
   stage: test
+
   before_script:
+    - apt-get update
+    - apt-get install -y libgl1 libglib2.0-0
+
     - cd mana-hyderabad-backend
+
     - python -m pip install --upgrade pip
+
+    # Replace GUI OpenCV with headless version for CI
+    - sed -i 's/opencv-python/opencv-python-headless/g' requirements.txt || true
+
     - pip install -r requirements.txt
+
   script:
     - pytest
 
 dependency_audit:
   image: python:3.11
   stage: security
+
   before_script:
     - python -m pip install --upgrade pip
     - pip install pip-audit
+
   script:
     - npm audit --audit-level=high
     - cd mana-hyderabad-backend && pip-audit -r requirements.txt
@@ -119,6 +131,8 @@ secret_scan:
   image:
     name: zricethezav/gitleaks:latest
     entrypoint: [""]
+
   stage: security
+
   script:
     - gitleaks detect --source . --config .gitleaks.toml --redact --verbose

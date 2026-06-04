@@ -88,12 +88,14 @@ changelog:
     entrypoint: [""]
   stage: changelog
   script:
+    - export PATH="/opt/homebrew/bin:$PATH"
     - git-cliff --config cliff.toml --unreleased --strip header
 
 backend_tests:
   image: python:3.11
   stage: test
   before_script:
+    - export PATH="/opt/homebrew/bin:$PATH"
     - cd mana-hyderabad-backend
     - python3 -m venv .venv-ci
     - source .venv-ci/bin/activate
@@ -114,6 +116,7 @@ backend_dependency_audit:
   image: python:3.11
   stage: security
   before_script:
+    - export PATH="/opt/homebrew/bin:$PATH"
     - cd mana-hyderabad-backend
     - python3 -m venv .venv-ci-audit
     - source .venv-ci-audit/bin/activate
@@ -129,4 +132,5 @@ secret_scan:
     entrypoint: [""]
   stage: security
   script:
+    - export PATH="/opt/homebrew/bin:$PATH"
     - gitleaks detect --source . --config .gitleaks.toml --redact --verbose

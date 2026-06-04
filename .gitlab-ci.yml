@@ -95,9 +95,12 @@ backend_tests:
   stage: test
   before_script:
     - cd mana-hyderabad-backend
+    - python3 -m venv .venv-ci
+    - source .venv-ci/bin/activate
     - python -m pip install --upgrade pip
     - pip install -r requirements-ci.txt
   script:
+    - source .venv-ci/bin/activate
     - pytest
 
 frontend_dependency_audit:
@@ -111,10 +114,13 @@ backend_dependency_audit:
   image: python:3.11
   stage: security
   before_script:
+    - cd mana-hyderabad-backend
+    - python3 -m venv .venv-ci-audit
+    - source .venv-ci-audit/bin/activate
     - python -m pip install --upgrade pip
     - pip install pip-audit
   script:
-    - cd mana-hyderabad-backend
+    - source .venv-ci-audit/bin/activate
     - pip-audit -r requirements.txt
 
 secret_scan:

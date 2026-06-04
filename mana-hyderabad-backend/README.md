@@ -19,6 +19,8 @@ python -m app.seed
 uvicorn app.main:app --reload
 ```
 
+CI uses `requirements-ci.txt` for backend tests so optional computer-vision training/inference packages do not slow or destabilize the test job. Production/demo installs still use `requirements.txt`.
+
 ## Environment Variables
 
 ```env

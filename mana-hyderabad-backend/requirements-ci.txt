@@ -1,0 +1,17 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+SQLAlchemy==2.0.36
+alembic==1.14.0
+psycopg[binary]==3.2.3
+GeoAlchemy2==0.16.0
+pgvector==0.3.6
+python-dotenv==1.2.2
+pytest==9.0.3
+requests==2.33.0
+httpx==0.28.1
+cloudinary==1.41.0
+python-multipart==0.0.27
+pillow==12.2.0
+PyYAML==6.0.2

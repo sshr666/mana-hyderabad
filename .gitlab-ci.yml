@@ -105,15 +105,22 @@ backend_tests:
   script:
     - pytest
 
-dependency_audit:
+frontend_dependency_audit:
+  image: node:20
+  stage: security
+  script:
+    - npm ci
+    - npm audit --audit-level=high
+
+backend_dependency_audit:
   image: python:3.11
   stage: security
   before_script:
     - python -m pip install --upgrade pip
     - pip install pip-audit
   script:
-    - npm audit --audit-level=high
-    - cd mana-hyderabad-backend && pip-audit -r requirements.txt
+    - cd mana-hyderabad-backend
+    - pip-audit -r requirements.txt
 
 secret_scan:
   image:
